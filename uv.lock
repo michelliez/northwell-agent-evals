@@ -28,7 +28,7 @@ wheels = [
 [[package]]
 name = "agent-harness"
 version = "0.1.0"
-source = { editable = "../clarity_agent_application" }
+source = { editable = "../dsi_clarity_agent" }
 dependencies = [
     { name = "anthropic" },
     { name = "beautifulsoup4" },
@@ -67,6 +67,18 @@ dev = [
     { name = "pytest-asyncio", specifier = ">=1.4.0" },
     { name = "pytest-mock", specifier = ">=3.15.0" },
     { name = "ruff", specifier = ">=0.9.0" },
+]
+genq = [
+    { name = "accelerate", specifier = ">=0.26.0" },
+    { name = "bitsandbytes", marker = "sys_platform == 'linux' or sys_platform == 'win32'", specifier = ">=0.45.0" },
+    { name = "datasets", specifier = ">=5.0.0" },
+    { name = "faiss-cpu", specifier = ">=1.14.3" },
+    { name = "mlx-lm", specifier = ">=0.29.1" },
+    { name = "numpy", specifier = ">=2.1.0" },
+    { name = "sentence-transformers", specifier = ">=4.1.0" },
+    { name = "torch", marker = "sys_platform != 'linux' and sys_platform != 'win32'", specifier = ">=2.13.0" },
+    { name = "torch", marker = "sys_platform == 'linux' or sys_platform == 'win32'", specifier = ">=2.13.0", index = "https://download.pytorch.org/whl/cu126" },
+    { name = "transformers", specifier = ">=4.41.0,<5" },
 ]
 ui = [
     { name = "chainlit", specifier = ">=2.9.4" },
@@ -318,7 +330,7 @@ genq = [
 
 [package.metadata]
 requires-dist = [
-    { name = "agent-harness", editable = "../clarity_agent_application" },
+    { name = "agent-harness", editable = "../dsi_clarity_agent" },
     { name = "certifi", specifier = ">=2025.0.0" },
     { name = "pydantic", specifier = ">=2.13.4" },
     { name = "python-dotenv", specifier = ">=1.2.2" },

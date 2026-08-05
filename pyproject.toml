@@ -38,13 +38,19 @@ packages = ["src/clarity_agent_evals"]
 include = ["/src", "/tests", "/evals", "/README.md"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src", "../clarity_agent_application/src"]
+pythonpath = ["src", "../dsi_clarity_agent/src"]
 
 [tool.uv]
 package = true
 
 [tool.uv.sources]
-"agent-harness" = { path = "../clarity_agent_application", editable = true }
+# The sibling checkout, named for the repository it comes from so a default
+# `git clone` lands in the right place without a rename.
+#
+# This entry must stay. "agent-harness" is also a real package on public PyPI
+# owned by someone else, so removing the source turns an unresolvable name into
+# a silently installable stranger's package rather than into an error.
+"agent-harness" = { path = "../dsi_clarity_agent", editable = true }
 torch = [
     { index = "pytorch-cu126", marker = "sys_platform == 'win32' or sys_platform == 'linux'" },
 ]

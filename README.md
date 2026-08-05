@@ -5,12 +5,26 @@ synthetic-query generation, filtering, baseline embedding experiments, and bi-en
 training. It intentionally depends on the sibling application repository; the
 application does not depend on this repository.
 
-Expected sibling layout:
+Expected sibling layout. The directory names are the repository names, so a
+default `git clone` of each produces this without renaming anything:
 
 ```text
-workspace/
-├── clarity_agent_application/
-└── clarity_agent_evals/
+nw/
+├── fixtures/                       # shared inputs, committed to neither repo
+│   ├── ClarityDictionaryHTML-full/ # the Clarity dictionary; everything derives from it
+│   ├── rag/                        # built SQLite indexes
+│   └── models/                     # downloaded encoder weights
+├── dsi_clarity_agent/
+└── dsi_clarity_agent_eval/
+```
+
+`fixtures/` sits outside both checkouts because the corpus and the index are
+inputs to both repositories and are far too large to duplicate per clone. Point
+each repository at it with a directory junction, which needs no administrator
+rights on Windows:
+
+```powershell
+cmd /c mklink /J "var\rag" "..\fixtures\rag"
 ```
 
 Install and run the lightweight evaluation suite:
