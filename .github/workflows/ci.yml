@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      # This repository depends on the application repository through a path
+      # source (`../dsi_clarity_agent`), so a single checkout cannot install.
+      # Both are checked out as siblings under the workspace, matching the
+      # layout the README documents for a developer machine.
+      - uses: actions/checkout@v4
+        with:
+          path: dsi_clarity_agent_eval
+          # The synthetic datasets are ~160 MB of LFS content that no test
+          # reads. Skipping them keeps checkout fast; a job that needs them
+          # must pull them explicitly.
+          lfs: false
+
+      - uses: actions/checkout@v4
+        with:
+          repository: NWH-Analytics-Solutions/dsi_clarity_agent
+          path: dsi_clarity_agent
+          # GITHUB_TOKEN is scoped to this repository alone, so a cross-repository
+          # checkout needs its own credential. Create a fine-grained PAT with
+          # read access to dsi_clarity_agent and store it as this secret.
+          token: ${{ secrets.CLARITY_AGENT_REPO_TOKEN }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      # The genq group is deliberately absent. Its torch pin resolves against
+      # the CUDA index on Linux, which is roughly 2.5 GB per run for a job with
+      # no GPU. The cost is that torch- and sentence-transformers-facing code is
+      # not type-checked here; those imports are lazy, so nothing else breaks.
+      #
+      # --locked, because selecting a subset of groups makes uv re-resolve and
+      # prune the groups it was not asked for out of uv.lock. In CI that silently
+      # tests against a lockfile nobody reviewed; --locked asserts the committed
+      # lock already matches pyproject.toml and fails instead of rewriting it.
+      - name: Install dependencies
+        working-directory: dsi_clarity_agent_eval
+        run: uv sync --locked --group dev
+
+      - name: Format check
+        working-directory: dsi_clarity_agent_eval
+        run: uv run ruff format --check src tests
+
+      - name: Lint
+        working-directory: dsi_clarity_agent_eval
+        run: uv run ruff check src tests
+
+      - name: Type check
+        working-directory: dsi_clarity_agent_eval
+        run: uv run pyright
+
+      - name: Tests
+        working-directory: dsi_clarity_agent_eval
+        run: uv run pytest -q
