@@ -20,7 +20,6 @@ from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
-
 from retrieval.chunk_models import FilteredQueryRecord, SplitChunkRecord
 
 LOGGER = logging.getLogger(__name__)
@@ -29,6 +28,12 @@ DEFAULT_BATCH_SIZE = 32
 DEFAULT_LEARNING_RATE = 2e-5
 DEFAULT_WARMUP_RATIO = 0.1
 DEFAULT_EVALUATION_STEPS = 500
+# Qwen3-Embedding declares max_seq_length 32768, which suits long documents and
+# is catastrophic here: Clarity passages measure 31 tokens at the median, 106 at
+# p95, and 460 at the longest. Attention memory grows with sequence length, so
+# the model default made activations dominate and pushed a 10 GB card into
+# system RAM over PCIe -- 32 seconds per iteration before it failed outright.
+DEFAULT_MAX_SEQ_LENGTH = 512
 DEVICE_CHOICES = ("auto", "cpu", "cuda", "mps")
 
 
@@ -45,6 +50,13 @@ class TrainingReport(BaseModel):
     epochs: int = Field(ge=1)
     batch_size: int = Field(ge=1)
     learning_rate: float = Field(gt=0)
+    # What the run actually used, not what was asked for: both fall back to full
+    # precision off CUDA, and a report that recorded the request would make two
+    # runs look identical when their numerics differed.
+    dtype: str
+    optimizer: str
+    max_seq_length: int = Field(ge=1)
+    gradient_checkpointing: bool
 
 
 @dataclass(frozen=True)
@@ -63,6 +75,21 @@ class BiEncoderTrainingConfig:
     evaluation_steps: int = DEFAULT_EVALUATION_STEPS
     device: str = "auto"
     seed: int = 42
+    # A 596M-parameter encoder in fp32 needs 2.2 GB of weights, 2.2 GB of
+    # gradients, and 4.4 GB of AdamW moments -- 8.9 GB before a single
+    # activation, against 8.9 GB free on a 10 GB card. Lowering batch_size does
+    # not help, because none of that is activation memory. bf16 weights and
+    # 8-bit moments bring it to roughly 3.4 GB.
+    use_bfloat16: bool = True
+    use_8bit_optimizer: bool = True
+    max_seq_length: int = DEFAULT_MAX_SEQ_LENGTH
+    # Activations, not parameters, are what actually overflow here: 28 layers at
+    # batch 32 hold roughly 17 GB, against 3.4 GB for weights, gradients, and
+    # 8-bit moments combined. Recomputing them during the backward pass costs
+    # about 30% throughput and removes the dominant term. Shrinking the batch
+    # would also work but weakens MultipleNegativesRankingLoss, which draws its
+    # negatives from within the batch.
+    use_gradient_checkpointing: bool = True
 
     def validate(self) -> None:
         if not self.base_model.strip():
@@ -79,6 +106,25 @@ class BiEncoderTrainingConfig:
             raise ValueError("warmup_ratio must be in [0, 1)")
         if self.evaluation_steps < 1:
             raise ValueError("evaluation_steps must be at least 1")
+        if self.max_seq_length < 1:
+            raise ValueError("max_seq_length must be at least 1")
+
+
+def _resolve_optimizer(torch: Any, want_8bit: bool) -> tuple[Any, str]:
+    """Return the optimizer class to train with, and the name to record.
+
+    Falls back to AdamW rather than failing when bitsandbytes is unavailable,
+    because a missing optional dependency should cost memory headroom, not the
+    run. The chosen name is reported so a later reader can tell which happened.
+    """
+    if not want_8bit:
+        return torch.optim.AdamW, "adamw"
+    try:
+        from bitsandbytes.optim import AdamW8bit  # pyright: ignore[reportMissingImports]
+    except ImportError:
+        LOGGER.warning("bitsandbytes is unavailable; using fp32 AdamW moments instead of 8-bit")
+        return torch.optim.AdamW, "adamw"
+    return AdamW8bit, "adamw8bit"
 
 
 def load_training_pairs(
@@ -157,10 +203,36 @@ def train_biencoder(config: BiEncoderTrainingConfig) -> TrainingReport:
         resolved_device = "cuda" if torch.cuda.is_available() else "cpu"
     else:
         resolved_device = config.device
+    # bf16 rather than fp16: the exponent range matches fp32, so training does
+    # not need loss scaling to avoid underflowing gradients. Only on CUDA --
+    # CPU bf16 matmul is emulated and slower than the fp32 it replaces.
+    use_bfloat16 = config.use_bfloat16 and resolved_device == "cuda"
+    model_kwargs: dict[str, Any] = {"dtype": torch.bfloat16} if use_bfloat16 else {}
     model = SentenceTransformer(
         config.base_model,
         device=resolved_device,
         trust_remote_code=config.trust_remote_code,
+        model_kwargs=model_kwargs,
+    )
+    declared_max_seq_length = model.max_seq_length
+    model.max_seq_length = config.max_seq_length
+    if config.use_gradient_checkpointing:
+        inner: Any = model[0].auto_model  # type: ignore[index]
+        # use_cache keeps per-layer key/value tensors alive, which is exactly
+        # what checkpointing exists to discard; transformers warns and disables
+        # it anyway, so turn it off rather than leave a contradiction in place.
+        inner.config.use_cache = False
+        inner.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+    optimizer_class, optimizer_name = _resolve_optimizer(
+        torch, config.use_8bit_optimizer and resolved_device == "cuda"
+    )
+    LOGGER.info(
+        "Training on %s in %s with %s, max_seq_length %d (model declares %s)",
+        resolved_device,
+        "bfloat16" if use_bfloat16 else "float32",
+        optimizer_name,
+        config.max_seq_length,
+        declared_max_seq_length,
     )
 
     train_examples = [InputExample(texts=[q, p]) for q, p in train_pairs]
@@ -189,6 +261,8 @@ def train_biencoder(config: BiEncoderTrainingConfig) -> TrainingReport:
         warmup_steps=int(len(train_dataloader) * config.epochs * config.warmup_ratio),
         evaluation_steps=config.evaluation_steps if evaluator else 0,
         output_path=str(config.output_dir),
+        optimizer_class=optimizer_class,
+        optimizer_params={"lr": config.learning_rate},
         show_progress_bar=True,
     )
 
@@ -210,6 +284,10 @@ def train_biencoder(config: BiEncoderTrainingConfig) -> TrainingReport:
         epochs=config.epochs,
         batch_size=config.batch_size,
         learning_rate=config.learning_rate,
+        dtype="bfloat16" if use_bfloat16 else "float32",
+        optimizer=optimizer_name,
+        max_seq_length=config.max_seq_length,
+        gradient_checkpointing=config.use_gradient_checkpointing,
     )
     report_path = config.output_dir / "training_report.json"
     report_path.write_text(
@@ -237,6 +315,33 @@ def main() -> None:
     parser.add_argument("--device", choices=DEVICE_CHOICES, default="auto")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument(
+        "--fp32",
+        action="store_true",
+        default=False,
+        help="Train in float32 instead of bfloat16 (a 0.6B encoder will not fit on 10 GB)",
+    )
+    parser.add_argument(
+        "--no-8bit-optimizer",
+        action="store_true",
+        default=False,
+        help="Use fp32 AdamW moments instead of 8-bit, costing about 3.3 GB more",
+    )
+    parser.add_argument(
+        "--no-gradient-checkpointing",
+        action="store_true",
+        default=False,
+        help="Keep all activations in memory; about 30%% faster and roughly 17 GB larger",
+    )
+    parser.add_argument(
+        "--max-seq-length",
+        type=int,
+        default=DEFAULT_MAX_SEQ_LENGTH,
+        help=(
+            "Token cap per passage. Qwen3-Embedding declares 32768, which is 300x "
+            "the median Clarity passage and makes activations dominate memory."
+        ),
+    )
+    parser.add_argument(
         "--log-level",
         choices=("DEBUG", "INFO", "WARNING", "ERROR"),
         default="INFO",
@@ -261,13 +366,17 @@ def main() -> None:
                 evaluation_steps=args.evaluation_steps,
                 device=args.device,
                 seed=args.seed,
+                use_bfloat16=not args.fp32,
+                use_8bit_optimizer=not args.no_8bit_optimizer,
+                max_seq_length=args.max_seq_length,
+                use_gradient_checkpointing=not args.no_gradient_checkpointing,
             )
         )
     except (OSError, RuntimeError, ValueError) as exc:
         parser.error(str(exc))
     print(
-        f"Trained on {report.train_pair_count:,} pairs for {report.epochs} epochs. "
-        f"Model saved to {report.output_dir}"
+        f"Trained on {report.train_pair_count:,} pairs for {report.epochs} epochs "
+        f"in {report.dtype} with {report.optimizer}. Model saved to {report.output_dir}"
     )
 
 

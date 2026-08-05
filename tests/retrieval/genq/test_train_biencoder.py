@@ -8,6 +8,7 @@ import pytest
 
 from clarity_agent_evals.genq.train_biencoder import (
     BiEncoderTrainingConfig,
+    _resolve_optimizer,
     load_training_pairs,
 )
 
@@ -137,3 +138,79 @@ def test_config_rejects_invalid_settings() -> None:
     )
     with pytest.raises(ValueError, match="epochs"):
         config.validate()
+
+
+def test_memory_savings_are_on_by_default() -> None:
+    """A 0.6B encoder does not fit on a 10 GB card in fp32 with fp32 moments.
+
+    Weights, gradients, and AdamW moments come to 8.9 GB before any activation,
+    against 8.9 GB free, so opting in would mean the documented command fails
+    for the encoder the project actually uses.
+    """
+    config = BiEncoderTrainingConfig(
+        base_model="test",
+        retained_queries_path=Path("q.jsonl"),
+        chunks_path=Path("c.jsonl"),
+        output_dir=Path("out"),
+    )
+    assert config.use_bfloat16 is True
+    assert config.use_8bit_optimizer is True
+
+
+def test_sequence_length_is_capped_well_below_the_model_default() -> None:
+    """The encoder's own 32768 default is the wrong number for this corpus.
+
+    Clarity passages are 31 tokens at the median and 460 at the longest, so the
+    declared maximum is roughly 300x what any passage needs. Attention memory
+    grows with sequence length, and at the model default a 10 GB card spills
+    into system RAM rather than failing fast: 32 seconds per iteration.
+
+    The cap must still clear the longest real passage, or training silently
+    truncates the passages it is meant to learn.
+    """
+    config = BiEncoderTrainingConfig(
+        base_model="test",
+        retained_queries_path=Path("q.jsonl"),
+        chunks_path=Path("c.jsonl"),
+        output_dir=Path("out"),
+    )
+    assert config.max_seq_length == 512
+    assert config.max_seq_length > 460
+
+
+class _FakeTorch:
+    class optim:
+        class AdamW:
+            pass
+
+
+def test_optimizer_is_plain_adamw_when_8bit_is_not_wanted() -> None:
+    optimizer, name = _resolve_optimizer(_FakeTorch, want_8bit=False)
+
+    assert optimizer is _FakeTorch.optim.AdamW
+    assert name == "adamw"
+
+
+def test_missing_bitsandbytes_costs_memory_not_the_run(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An absent optional dependency must not abort a multi-hour job.
+
+    The reported name has to change with it, or a later reader cannot tell a
+    run that used 8-bit moments from one that quietly fell back.
+    """
+    import builtins
+
+    real_import = builtins.__import__
+
+    def deny_bitsandbytes(name: str, *args: object, **kwargs: object) -> object:
+        if name.startswith("bitsandbytes"):
+            raise ImportError("bitsandbytes is not installed")
+        return real_import(name, *args, **kwargs)  # pyright: ignore[reportCallIssue, reportArgumentType]
+
+    monkeypatch.setattr(builtins, "__import__", deny_bitsandbytes)
+
+    optimizer, name = _resolve_optimizer(_FakeTorch, want_8bit=True)
+
+    assert optimizer is _FakeTorch.optim.AdamW
+    assert name == "adamw"
