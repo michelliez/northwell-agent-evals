@@ -17,7 +17,6 @@ from difflib import SequenceMatcher
 from pathlib import Path
 
 from pydantic import ValidationError
-
 from retrieval.chunk_models import (
     FilterDecision,
     FilteredQueryRecord,

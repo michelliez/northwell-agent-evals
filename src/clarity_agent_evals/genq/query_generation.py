@@ -17,12 +17,12 @@ from typing import Protocol
 
 from dotenv import load_dotenv
 from pydantic import ValidationError
-
 from retrieval.chunk_models import (
     GeneratedQueryRecord,
     GenerationReport,
     SplitChunkRecord,
 )
+
 from clarity_agent_evals.genq.claude_query_generator import (
     DEFAULT_CLAUDE_MODEL,
     ClaudeHaikuQueryGenerator,

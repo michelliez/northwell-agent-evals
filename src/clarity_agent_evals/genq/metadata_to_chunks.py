@@ -17,10 +17,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
-
-from clarity_agent_evals.dataset_split import SplitConfig, assign_source_split
 from retrieval.chunk_models import SplitChunkRecord
 from retrieval.metadata_extractor import MetadataEmbeddingRecord, _write_atomic
+
+from clarity_agent_evals.dataset_split import SplitConfig, assign_source_split
 
 CONVERSION_VERSION = "metadata-to-genq-v1"
 SPLIT_VERSION = "metadata-source-hash-split-v1"

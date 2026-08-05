@@ -28,11 +28,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
-
-from clarity_agent_evals.dataset_split import SplitConfig, assign_source_split
 from retrieval.chunk_models import SplitChunkRecord
 from retrieval.metadata_extractor import _write_atomic
 from retrieval.search import get_index_version, open_connection
+
+from clarity_agent_evals.dataset_split import SplitConfig, assign_source_split
 
 EXTRACTOR_VERSION = "column-info-v1"
 SPLIT_VERSION = "metadata-source-hash-split-v1"

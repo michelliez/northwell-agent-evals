@@ -7,8 +7,10 @@ import sqlite3
 from pathlib import Path
 
 import pytest
-
 from retrieval.chunk_models import SplitChunkRecord
+from retrieval.index_contract import INDEX_CHUNKER_VERSION, INDEX_SCHEMA_VERSION
+from retrieval.indexer import create_schema
+
 from clarity_agent_evals.genq.column_extractor import (
     EXTRACTOR_VERSION,
     ColumnExtractorConfig,
@@ -17,8 +19,6 @@ from clarity_agent_evals.genq.column_extractor import (
     extract_description,
     stratified_sample,
 )
-from retrieval.index_contract import INDEX_CHUNKER_VERSION, INDEX_SCHEMA_VERSION
-from retrieval.indexer import create_schema
 
 
 def _hash(value: str) -> str:

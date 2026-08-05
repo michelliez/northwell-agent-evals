@@ -16,13 +16,6 @@ from typing import Any, Literal, Protocol
 
 import numpy as np  # pyright: ignore[reportMissingImports]
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
-
-from clarity_agent_evals.retrieval_evaluator import (
-    JudgmentScope,
-    RetrievalTarget,
-    load_retrieval_dataset,
-    ranked_metrics,
-)
 from retrieval.chunk_models import (
     BaselineEvaluationReport,
     BaselineIndexMetadata,
@@ -34,6 +27,13 @@ from retrieval.chunk_models import (
     SplitChunkRecord,
 )
 from retrieval.metadata_extractor import DescriptionStatus, MetadataEmbeddingRecord
+
+from clarity_agent_evals.retrieval_evaluator import (
+    JudgmentScope,
+    RetrievalTarget,
+    load_retrieval_dataset,
+    ranked_metrics,
+)
 
 LOGGER = logging.getLogger(__name__)
 INDEX_VERSION = "pretrained-flatip-v1"

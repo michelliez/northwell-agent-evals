@@ -7,6 +7,7 @@ from collections import Counter
 from pathlib import Path
 
 import pytest
+from retrieval.indexer import build_index
 
 from clarity_agent_evals.retrieval_evaluator import (
     RetrievalChunkTarget,
@@ -26,7 +27,6 @@ from clarity_agent_evals.retrieval_evaluator import (
     run_retrieval_evaluation,
 )
 from clarity_agent_evals.retrieval_gold import validate_semantic_dataset
-from retrieval.indexer import build_index
 
 BENCHMARK_DIR = Path("evals/retrieval/benchmark")
 

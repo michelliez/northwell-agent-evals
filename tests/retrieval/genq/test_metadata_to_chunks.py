@@ -5,8 +5,9 @@ import json
 from pathlib import Path
 
 import pytest
-
 from retrieval.chunk_models import SplitChunkRecord
+from retrieval.metadata_extractor import EXTRACTOR_VERSION, MetadataEmbeddingRecord
+
 from clarity_agent_evals.genq.metadata_to_chunks import (
     CONVERSION_VERSION,
     SPLIT_VERSION,
@@ -14,7 +15,6 @@ from clarity_agent_evals.genq.metadata_to_chunks import (
     MetadataConversionConfig,
     convert_metadata_to_split_chunks,
 )
-from retrieval.metadata_extractor import EXTRACTOR_VERSION, MetadataEmbeddingRecord
 
 
 def _hash(value: str) -> str:

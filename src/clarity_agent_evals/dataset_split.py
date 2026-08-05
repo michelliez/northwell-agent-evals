@@ -15,7 +15,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from pydantic import ValidationError
-
 from retrieval.chunk_models import (
     ChunkRecord,
     SplitChunkRecord,
