@@ -1,0 +1,36 @@
+{
+  "chunks_path": ".local\\genq\\table-corpus\\chunks_dedup.jsonl",
+  "decision_counts": {
+    "reject": 30,
+    "retain": 62048,
+    "review": 42
+  },
+  "filter_version": "deterministic-query-quality-v1",
+  "input_query_count": 62120,
+  "manual_review_query_count": 42,
+  "max_query_chars": 256,
+  "max_query_words": 32,
+  "min_query_words": 3,
+  "near_duplicate_threshold": 0.88,
+  "passage_copy_threshold": 0.86,
+  "queries_path": ".local\\queries\\train-run\\generated_queries.jsonl",
+  "raw_queries_hash": "2ed774331f81fa20ecae99c3f6d63fb3620196a7eba9f1a2b872d52e6c3c5429",
+  "reason_counts": {
+    "near_duplicate_same_chunk": 28,
+    "no_meaningful_lexical_support": 32,
+    "same_query_multiple_positive_chunks": 10,
+    "too_many_words": 2
+  },
+  "rejected_query_count": 30,
+  "retained_counts_by_split": {
+    "test": 6202,
+    "train": 49706,
+    "validation": 6140
+  },
+  "retained_output_path": ".local\\queries\\train-run\\retained_queries.jsonl",
+  "retained_queries_hash": "e66cfc30b4f37beb72982f096141d7afa37bbd8898a8f39d65ca055d3cfef15c",
+  "retained_query_count": 62048,
+  "review_ledger_hash": "78a00dfbb8a6111bef3f533f955d0ba2c3a1ddffbe816f31ddd7143680c75cba",
+  "review_output_path": ".local\\queries\\train-run\\query_reviews.jsonl",
+  "source_chunks_hash": "41391515a73e78d3cd7e7c20b657a5323e9df66474a1c9cb4b741021e22d9831"
+}

@@ -1,0 +1,29 @@
+{"document_key":"epic_clarity:table:A0H_DELETE","source_system":"epic_clarity","object_type":"table","object_name":"A0H_DELETE","source_path":"A0H_DELETE.html"}
+{"document_key":"epic_clarity:table:A0H_MAP","source_system":"epic_clarity","object_type":"table","object_name":"A0H_MAP","source_path":"A0H_MAP.html"}
+{"document_key":"epic_clarity:table:A0H_UPDATE","source_system":"epic_clarity","object_type":"table","object_name":"A0H_UPDATE","source_path":"A0H_UPDATE.html"}
+{"document_key":"epic_clarity:table:AAG_DELETE","source_system":"epic_clarity","object_type":"table","object_name":"AAG_DELETE","source_path":"AAG_DELETE.html"}
+{"document_key":"epic_clarity:table:AAG_MAP","source_system":"epic_clarity","object_type":"table","object_name":"AAG_MAP","source_path":"AAG_MAP.html"}
+{"document_key":"epic_clarity:table:AAG_UPDATE","source_system":"epic_clarity","object_type":"table","object_name":"AAG_UPDATE","source_path":"AAG_UPDATE.html"}
+{"document_key":"epic_clarity:table:ABF_DELETE","source_system":"epic_clarity","object_type":"table","object_name":"ABF_DELETE","source_path":"ABF_DELETE.html"}
+{"document_key":"epic_clarity:table:ABF_MAP","source_system":"epic_clarity","object_type":"table","object_name":"ABF_MAP","source_path":"ABF_MAP.html"}
+{"document_key":"epic_clarity:table:ABF_UPDATE","source_system":"epic_clarity","object_type":"table","object_name":"ABF_UPDATE","source_path":"ABF_UPDATE.html"}
+{"document_key":"epic_clarity:table:ABN_DOCUMENT_ID","source_system":"epic_clarity","object_type":"table","object_name":"ABN_DOCUMENT_ID","source_path":"ABN_DOCUMENT_ID.html"}
+{"document_key":"epic_clarity:table:ZC_XPR_INJURY_SITE","source_system":"epic_clarity","object_type":"table","object_name":"ZC_XPR_INJURY_SITE","source_path":"ZC_XPR_INJURY_SITE.html"}
+{"document_key":"epic_clarity:table:ZC_XPR_INJ_ACTIVITY","source_system":"epic_clarity","object_type":"table","object_name":"ZC_XPR_INJ_ACTIVITY","source_path":"ZC_XPR_INJ_ACTIVITY.html"}
+{"document_key":"epic_clarity:table:ZC_XPR_INJ_MECHANISM","source_system":"epic_clarity","object_type":"table","object_name":"ZC_XPR_INJ_MECHANISM","source_path":"ZC_XPR_INJ_MECHANISM.html"}
+{"document_key":"epic_clarity:table:ZC_XPR_LEGAL_BASIS","source_system":"epic_clarity","object_type":"table","object_name":"ZC_XPR_LEGAL_BASIS","source_path":"ZC_XPR_LEGAL_BASIS.html"}
+{"document_key":"epic_clarity:table:ZC_XPR_LEVEL_OF_CARE","source_system":"epic_clarity","object_type":"table","object_name":"ZC_XPR_LEVEL_OF_CARE","source_path":"ZC_XPR_LEVEL_OF_CARE.html"}
+{"document_key":"epic_clarity:table:ZC_XPR_LIFE_SITUATION","source_system":"epic_clarity","object_type":"table","object_name":"ZC_XPR_LIFE_SITUATION","source_path":"ZC_XPR_LIFE_SITUATION.html"}
+{"document_key":"epic_clarity:table:ZC_XPR_LIVES_WITH","source_system":"epic_clarity","object_type":"table","object_name":"ZC_XPR_LIVES_WITH","source_path":"ZC_XPR_LIVES_WITH.html"}
+{"document_key": "epic_clarity:table:PAT_ENC", "source_system": "epic_clarity", "object_type": "table", "object_name": "PAT_ENC", "source_path": "PAT_ENC.html"}
+{"document_key": "epic_clarity:table:PAT_ENC_HSP", "source_system": "epic_clarity", "object_type": "table", "object_name": "PAT_ENC_HSP", "source_path": "PAT_ENC_HSP.html"}
+{"document_key": "epic_clarity:table:CLARITY_ADT", "source_system": "epic_clarity", "object_type": "table", "object_name": "CLARITY_ADT", "source_path": "CLARITY_ADT.html"}
+{"document_key": "epic_clarity:table:ORDER_PROC", "source_system": "epic_clarity", "object_type": "table", "object_name": "ORDER_PROC", "source_path": "ORDER_PROC.html"}
+{"document_key": "epic_clarity:table:ORDER_MED", "source_system": "epic_clarity", "object_type": "table", "object_name": "ORDER_MED", "source_path": "ORDER_MED.html"}
+{"document_key": "epic_clarity:table:PATIENT", "source_system": "epic_clarity", "object_type": "table", "object_name": "PATIENT", "source_path": "PATIENT.html"}
+{"document_key": "epic_clarity:table:CLARITY_SER", "source_system": "epic_clarity", "object_type": "table", "object_name": "CLARITY_SER", "source_path": "CLARITY_SER.html"}
+{"document_key": "epic_clarity:table:CLARITY_DEP", "source_system": "epic_clarity", "object_type": "table", "object_name": "CLARITY_DEP", "source_path": "CLARITY_DEP.html"}
+{"document_key": "epic_clarity:table:HSP_ACCOUNT", "source_system": "epic_clarity", "object_type": "table", "object_name": "HSP_ACCOUNT", "source_path": "HSP_ACCOUNT.html"}
+{"document_key": "epic_clarity:table:CLARITY_EAP", "source_system": "epic_clarity", "object_type": "table", "object_name": "CLARITY_EAP", "source_path": "CLARITY_EAP.html"}
+{"document_key": "epic_clarity:table:PAT_ENC_DX", "source_system": "epic_clarity", "object_type": "table", "object_name": "PAT_ENC_DX", "source_path": "PAT_ENC_DX.html"}
+{"document_key": "epic_clarity:table:PROBLEM_LIST", "source_system": "epic_clarity", "object_type": "table", "object_name": "PROBLEM_LIST", "source_path": "PROBLEM_LIST.html"}

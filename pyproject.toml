@@ -1,0 +1,91 @@
+[project]
+name = "clarity-agent-evals"
+version = "0.1.0"
+description = "Evaluation, synthetic-query generation, and retrieval benchmarks for the Clarity Agent"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "agent-harness",
+    "certifi>=2025.0.0",
+    "pydantic>=2.13.4",
+    "python-dotenv>=1.2.2",
+]
+
+[project.scripts]
+agent-harness-eval = "clarity_agent_evals.runner:main"
+agent-harness-genq-split = "clarity_agent_evals.dataset_split:main"
+agent-harness-genq-generate = "clarity_agent_evals.genq.query_generation:main"
+agent-harness-genq-filter = "clarity_agent_evals.query_filter:main"
+agent-harness-genq-metadata-convert = "clarity_agent_evals.genq.metadata_to_chunks:main"
+agent-harness-genq-baseline = "clarity_agent_evals.genq.baseline_faiss:main"
+agent-harness-genq-train = "clarity_agent_evals.genq.train_biencoder:main"
+agent-harness-genq-columns = "clarity_agent_evals.genq.column_extractor:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# Hatch emits one editable-path line per selected package. Keeping the nested
+# genq package explicit also avoids a Python 3.14/site.py edge case where a
+# single unterminated .pth line is ignored.
+[tool.hatch.build]
+dev-mode-dirs = ["src", "src"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/clarity_agent_evals"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/src", "/tests", "/evals", "/README.md"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "../clarity_agent_application/src"]
+
+[tool.uv]
+package = true
+
+[tool.uv.sources]
+"agent-harness" = { path = "../clarity_agent_application", editable = true }
+torch = [
+    { index = "pytorch-cu126", marker = "sys_platform == 'win32' or sys_platform == 'linux'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-mock>=3.15.0",
+    "ruff>=0.9.0",
+    "pyright>=1.1.400",
+]
+genq = [
+    "accelerate>=0.26.0",
+    "bitsandbytes>=0.45.0; sys_platform == 'win32' or sys_platform == 'linux'",
+    "datasets>=5.0.0",
+    "faiss-cpu>=1.14.3",
+    "mlx-lm>=0.29.1",
+    "numpy>=2.1.0",
+    "sentence-transformers>=4.1.0",
+    "torch>=2.13.0",
+    "transformers>=4.41.0,<5",
+]
+
+[tool.ruff]
+src = ["src"]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.pyright]
+pythonVersion = "3.14"
+venvPath = "."
+venv = ".venv"
+include = ["src"]
+typeCheckingMode = "basic"
+reportPrivateImportUsage = "none"

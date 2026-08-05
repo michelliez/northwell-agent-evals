@@ -1,0 +1,32 @@
+{
+  "batch_size": 32,
+  "device": "cuda",
+  "duplicate_query_count": 10,
+  "eligible_chunk_count": 31060,
+  "generated_query_count": 62120,
+  "generation_version": "synthetic-query-generation-v2",
+  "generator_model": "Qwen/Qwen3-4B-Instruct-2507",
+  "input_chunk_count": 39392,
+  "input_corpus_hash": "41391515a73e78d3cd7e7c20b657a5323e9df66474a1c9cb4b741021e22d9831",
+  "input_path": ".local\\genq\\table-corpus\\chunks_dedup.jsonl",
+  "max_input_tokens": 300,
+  "max_query_tokens": 64,
+  "min_passage_chars": 40,
+  "output_path": ".local\\queries\\train-run\\generated_queries.jsonl",
+  "output_query_hash": "2ed774331f81fa20ecae99c3f6d63fb3620196a7eba9f1a2b872d52e6c3c5429",
+  "passages_per_request": 1,
+  "queries_per_chunk": 2,
+  "query_counts_by_chunk_type": {
+    "table_metadata": 62120
+  },
+  "query_counts_by_split": {
+    "test": 6206,
+    "train": 49768,
+    "validation": 6146
+  },
+  "requested_limit": null,
+  "seed": 42,
+  "selected_chunk_count": 31060,
+  "skipped_short_chunk_count": 8332,
+  "top_p": 0.95
+}

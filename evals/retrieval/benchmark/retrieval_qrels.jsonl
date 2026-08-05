@@ -1,0 +1,72 @@
+{"target_id":"Q01-D01","query_id":"Q01","document_key":"epic_clarity:table:A0H_DELETE","relevance":3,"relevance_rationale":"Directly documents the deleted-access-record feed, its key, and its row identifier."}
+{"target_id":"Q02-D01","query_id":"Q02","document_key":"epic_clarity:table:A0H_UPDATE","relevance":3,"relevance_rationale":"Directly documents A0H_UPDATE's composite key and CHRON_TBL_NUM meaning."}
+{"target_id":"Q03-D01","query_id":"Q03","document_key":"epic_clarity:table:AAG_MAP","relevance":3,"relevance_rationale":"Directly documents the action-group mapping table, local identifier, community identifier, and key."}
+{"target_id":"Q04-D01","query_id":"Q04","document_key":"epic_clarity:table:ZC_XPR_LEGAL_BASIS","relevance":3,"relevance_rationale":"Defines the legal-basis category code and label needed for a reporting dimension."}
+{"target_id":"Q05-D01","query_id":"Q05","document_key":"epic_clarity:table:ABN_DOCUMENT_ID","relevance":3,"relevance_rationale":"Defines the ABN document table, encounter-line grain, and notice identifier."}
+{"target_id":"Q06-D01","query_id":"Q06","document_key":"epic_clarity:table:ABN_DOCUMENT_ID","relevance":3,"relevance_rationale":"Defines the encounter key and both contact-date representations."}
+{"target_id":"Q07-D01","query_id":"Q07","document_key":"epic_clarity:table:A0H_MAP","relevance":3,"relevance_rationale":"Defines local access-record identifiers, CIDs, and deployment identity."}
+{"target_id":"Q07-D02","query_id":"Q07","document_key":"epic_clarity:table:ABF_MAP","relevance":3,"relevance_rationale":"Defines local form identifiers and their corresponding CIDs."}
+{"target_id":"Q08-D01","query_id":"Q08","document_key":"epic_clarity:table:A0H_MAP","relevance":3,"relevance_rationale":"Defines LINE and shows it in a mapping-table composite key."}
+{"target_id":"Q08-D02","query_id":"Q08","document_key":"epic_clarity:table:ABN_DOCUMENT_ID","relevance":3,"relevance_rationale":"Defines LINE at contact grain and shows it in the ABN composite key."}
+{"target_id":"Q08-D03","query_id":"Q08","document_key":"epic_clarity:table:AAG_MAP","relevance":2,"relevance_rationale":"Has the same LINE column in an identical composite key as A0H_MAP."}
+{"target_id":"Q08-D04","query_id":"Q08","document_key":"epic_clarity:table:ABF_MAP","relevance":2,"relevance_rationale":"Has the same LINE column in an identical composite key as A0H_MAP."}
+{"target_id":"Q09-D01","query_id":"Q09","document_key":"epic_clarity:table:A0H_UPDATE","relevance":3,"relevance_rationale":"Defines JOB as an integer job bucket in A0H updates."}
+{"target_id":"Q09-D02","query_id":"Q09","document_key":"epic_clarity:table:AAG_UPDATE","relevance":3,"relevance_rationale":"Defines JOB as an integer job bucket in AAG updates."}
+{"target_id":"Q09-D03","query_id":"Q09","document_key":"epic_clarity:table:ABF_UPDATE","relevance":3,"relevance_rationale":"Defines JOB as an integer job number in ABF updates."}
+{"target_id":"Q10-D01","query_id":"Q10","document_key":"epic_clarity:table:ZC_XPR_LIFE_SITUATION","relevance":3,"relevance_rationale":"A representative ZC table directly defines NAME, TITLE, ABBR, and INTERNAL_ID."}
+{"target_id":"Q11-D01","query_id":"Q11","document_key":"epic_clarity:table:ZC_XPR_INJ_MECHANISM","relevance":3,"relevance_rationale":"Provides the mechanism-of-injury reporting dimension."}
+{"target_id":"Q11-D02","query_id":"Q11","document_key":"epic_clarity:table:ZC_XPR_INJ_ACTIVITY","relevance":3,"relevance_rationale":"Provides the activity-at-time-of-injury reporting dimension."}
+{"target_id":"Q11-D03","query_id":"Q11","document_key":"epic_clarity:table:ZC_XPR_INJURY_SITE","relevance":3,"relevance_rationale":"Provides the injury-site reporting dimension."}
+{"target_id":"Q12-D01","query_id":"Q12","document_key":"epic_clarity:table:ZC_XPR_LEVEL_OF_CARE","relevance":3,"relevance_rationale":"Provides the level-of-care category dimension."}
+{"target_id":"Q12-D02","query_id":"Q12","document_key":"epic_clarity:table:ZC_XPR_LIFE_SITUATION","relevance":3,"relevance_rationale":"Provides the living-situation category dimension."}
+{"target_id":"Q12-D03","query_id":"Q12","document_key":"epic_clarity:table:ZC_XPR_LIVES_WITH","relevance":3,"relevance_rationale":"Provides the lives-with category dimension."}
+{"target_id":"Q13-D01","query_id":"Q13","document_key":"epic_clarity:table:A0H_MAP","relevance":3,"relevance_rationale":"Maps Hyperspace access records to community and owner identifiers."}
+{"target_id":"Q13-D02","query_id":"Q13","document_key":"epic_clarity:table:AAG_MAP","relevance":3,"relevance_rationale":"Maps automatic action groups to community and owner identifiers."}
+{"target_id":"Q13-D03","query_id":"Q13","document_key":"epic_clarity:table:ABF_MAP","relevance":3,"relevance_rationale":"Maps form records to community and owner identifiers."}
+{"target_id":"Q14-D01","query_id":"Q14","document_key":"epic_clarity:table:ABN_DOCUMENT_ID","relevance":3,"relevance_rationale":"Directly links ABN document identifiers with encounter and contact-date fields."}
+{"target_id":"Q15-D01","query_id":"Q15","document_key":"epic_clarity:table:A0H_DELETE","relevance":3,"relevance_rationale":"The delete helper for Hyperspace access records."}
+{"target_id":"Q15-D02","query_id":"Q15","document_key":"epic_clarity:table:A0H_UPDATE","relevance":3,"relevance_rationale":"The update helper for Hyperspace access records."}
+{"target_id":"Q15-D03","query_id":"Q15","document_key":"epic_clarity:table:AAG_DELETE","relevance":3,"relevance_rationale":"The delete helper for automatic action groups."}
+{"target_id":"Q15-D04","query_id":"Q15","document_key":"epic_clarity:table:AAG_UPDATE","relevance":3,"relevance_rationale":"The update helper for automatic action groups."}
+{"target_id":"Q15-D05","query_id":"Q15","document_key":"epic_clarity:table:ABF_DELETE","relevance":3,"relevance_rationale":"The delete helper for paper form records."}
+{"target_id":"Q15-D06","query_id":"Q15","document_key":"epic_clarity:table:ABF_UPDATE","relevance":3,"relevance_rationale":"The update helper for paper form records."}
+{"target_id":"Q16-D01","query_id":"Q16","document_key":"epic_clarity:table:A0H_DELETE","relevance":3,"relevance_rationale":"Supplies the single-column delete-feed key for comparison."}
+{"target_id":"Q16-D02","query_id":"Q16","document_key":"epic_clarity:table:A0H_UPDATE","relevance":3,"relevance_rationale":"Supplies the composite update-feed key and JOB batching field."}
+{"target_id":"Q17-D01","query_id":"Q17","document_key":"epic_clarity:table:A0H_MAP","relevance":3,"relevance_rationale":"Supplies the access mapping table's composite key."}
+{"target_id":"Q17-D02","query_id":"Q17","document_key":"epic_clarity:table:AAG_MAP","relevance":3,"relevance_rationale":"Supplies the action-group mapping table's composite key."}
+{"target_id":"Q17-D03","query_id":"Q17","document_key":"epic_clarity:table:ABF_MAP","relevance":3,"relevance_rationale":"Supplies the form mapping table's composite key."}
+{"target_id":"Q18-D01","query_id":"Q18","document_key":"epic_clarity:table:A0H_MAP","relevance":3,"relevance_rationale":"Lists instance-table destinations for the access mapping's physical-owner identifier."}
+{"target_id":"Q18-D02","query_id":"Q18","document_key":"epic_clarity:table:AAG_MAP","relevance":3,"relevance_rationale":"Lists the same instance-table destinations for the action-group mapping."}
+{"target_id":"Q18-D03","query_id":"Q18","document_key":"epic_clarity:table:ABF_MAP","relevance":2,"relevance_rationale":"Has the same CM_PHY_OWNER_ID foreign-key destinations as A0H_MAP and AAG_MAP."}
+{"target_id":"Q19-D01","query_id":"Q19","document_key":"epic_clarity:table:ZC_XPR_INJ_MECHANISM","relevance":3,"relevance_rationale":"Defines the integer mechanism category key."}
+{"target_id":"Q19-D02","query_id":"Q19","document_key":"epic_clarity:table:ZC_XPR_INJURY_SITE","relevance":3,"relevance_rationale":"Defines the integer injury-site category key."}
+{"target_id":"Q20-D01","query_id":"Q20","document_key":"epic_clarity:table:ABN_DOCUMENT_ID","relevance":3,"relevance_rationale":"Contains both the table-level EHI flag and PAT_ID field-level export status."}
+{"target_id": "Q25-D01", "query_id": "Q25", "document_key": "epic_clarity:table:PAT_ENC", "relevance": 3, "relevance_rationale": "Documents the encounter grain and primary key."}
+{"target_id": "Q26-D01", "query_id": "Q26", "document_key": "epic_clarity:table:CLARITY_ADT", "relevance": 3, "relevance_rationale": "Documents the ADT event master table and EVENT_ID key."}
+{"target_id": "Q27-D01", "query_id": "Q27", "document_key": "epic_clarity:table:CLARITY_DEP", "relevance": 3, "relevance_rationale": "Documents department information and DEPARTMENT_ID key."}
+{"target_id": "Q28-D01", "query_id": "Q28", "document_key": "epic_clarity:table:HSP_ACCOUNT", "relevance": 3, "relevance_rationale": "Documents hospital account scope and HSP_ACCOUNT_ID key."}
+{"target_id": "Q29-D01", "query_id": "Q29", "document_key": "epic_clarity:table:PROBLEM_LIST", "relevance": 3, "relevance_rationale": "Documents current-status problem list semantics and key."}
+{"target_id": "Q30-D01", "query_id": "Q30", "document_key": "epic_clarity:table:PAT_ENC", "relevance": 3, "relevance_rationale": "Defines CONTACT_DATE and DEPARTMENT_ID with types."}
+{"target_id": "Q31-D01", "query_id": "Q31", "document_key": "epic_clarity:table:PAT_ENC_HSP", "relevance": 3, "relevance_rationale": "Defines both admission and discharge timestamps."}
+{"target_id": "Q32-D01", "query_id": "Q32", "document_key": "epic_clarity:table:CLARITY_ADT", "relevance": 3, "relevance_rationale": "Defines EVENT_TYPE_C and its integer category type."}
+{"target_id": "Q33-D01", "query_id": "Q33", "document_key": "epic_clarity:table:CLARITY_SER", "relevance": 3, "relevance_rationale": "Names PROV_ID as the provider key."}
+{"target_id": "Q33-D02", "query_id": "Q33", "document_key": "epic_clarity:table:ORDER_MED", "relevance": 3, "relevance_rationale": "Names ORDER_MED_ID as the medication-order key."}
+{"target_id": "Q34-D01", "query_id": "Q34", "document_key": "epic_clarity:table:PAT_ENC_DX", "relevance": 3, "relevance_rationale": "Lists the composite key and the per-diagnosis grain."}
+{"target_id": "Q35-D01", "query_id": "Q35", "document_key": "epic_clarity:table:PAT_ENC_HSP", "relevance": 3, "relevance_rationale": "Holds both hospital admission and discharge timestamps."}
+{"target_id": "Q36-D01", "query_id": "Q36", "document_key": "epic_clarity:table:PAT_ENC", "relevance": 3, "relevance_rationale": "Carries DEPARTMENT_ID per encounter."}
+{"target_id": "Q36-D02", "query_id": "Q36", "document_key": "epic_clarity:table:CLARITY_DEP", "relevance": 2, "relevance_rationale": "Resolves the department reference to descriptive attributes."}
+{"target_id": "Q37-D01", "query_id": "Q37", "document_key": "epic_clarity:table:ORDER_MED", "relevance": 3, "relevance_rationale": "One record per medication ordered; the countable grain."}
+{"target_id": "Q38-D01", "query_id": "Q38", "document_key": "epic_clarity:table:PAT_ENC_DX", "relevance": 3, "relevance_rationale": "Encounter-level diagnoses."}
+{"target_id": "Q38-D02", "query_id": "Q38", "document_key": "epic_clarity:table:PROBLEM_LIST", "relevance": 2, "relevance_rationale": "Contrasting current ongoing problems."}
+{"target_id": "Q39-D01", "query_id": "Q39", "document_key": "epic_clarity:table:CLARITY_SER", "relevance": 3, "relevance_rationale": "The provider record table."}
+{"target_id": "Q40-D01", "query_id": "Q40", "document_key": "epic_clarity:table:HSP_ACCOUNT", "relevance": 3, "relevance_rationale": "The hospital account table charges post to."}
+{"target_id": "Q41-D01", "query_id": "Q41", "document_key": "epic_clarity:table:PAT_ENC", "relevance": 3, "relevance_rationale": "Carries PAT_ID for the join."}
+{"target_id": "Q41-D02", "query_id": "Q41", "document_key": "epic_clarity:table:PATIENT", "relevance": 3, "relevance_rationale": "Carries PAT_ID as the patient record."}
+{"target_id": "Q42-D01", "query_id": "Q42", "document_key": "epic_clarity:table:CLARITY_ADT", "relevance": 3, "relevance_rationale": "Carries both PAT_ENC_CSN_ID and DEPARTMENT_ID."}
+{"target_id": "Q43-D01", "query_id": "Q43", "document_key": "epic_clarity:table:PAT_ENC", "relevance": 3, "relevance_rationale": "Shared key and general encounter scope."}
+{"target_id": "Q43-D02", "query_id": "Q43", "document_key": "epic_clarity:table:PAT_ENC_HSP", "relevance": 3, "relevance_rationale": "Shared key and hospital encounter scope."}
+{"target_id": "Q44-D01", "query_id": "Q44", "document_key": "epic_clarity:table:CLARITY_EAP", "relevance": 3, "relevance_rationale": "Holds the procedure definition records."}
+{"target_id": "Q44-D02", "query_id": "Q44", "document_key": "epic_clarity:table:ORDER_PROC", "relevance": 2, "relevance_rationale": "The ordered-procedure side of the join."}
+{"target_id": "Q45-D01", "query_id": "Q45", "document_key": "epic_clarity:table:PAT_ENC_DX", "relevance": 3, "relevance_rationale": "Composite key leads with PAT_ENC_CSN_ID."}
+{"target_id": "Q45-D02", "query_id": "Q45", "document_key": "epic_clarity:table:PAT_ENC_HSP", "relevance": 2, "relevance_rationale": "Keyed by the same encounter identifier."}
+{"target_id": "Q45-D03", "query_id": "Q45", "document_key": "epic_clarity:table:PAT_ENC", "relevance": 2, "relevance_rationale": "Keyed by the same encounter identifier."}

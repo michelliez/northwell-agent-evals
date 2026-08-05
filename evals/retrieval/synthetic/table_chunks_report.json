@@ -1,0 +1,24 @@
+{
+  "conversion_version": "metadata-to-genq-v1",
+  "dedup_description_count": 1159,
+  "dedup_group_count": 425,
+  "description_status_counts": {
+    "empty": 8332,
+    "present": 31060
+  },
+  "input_hash": "5ba583382c3360402fb09fb06dd3ada9e4f5284455be752dbb6d36222b4c7b9d",
+  "input_path": ".local\\embeddings\\metadata.jsonl",
+  "input_record_count": 40551,
+  "output_hash": "41391515a73e78d3cd7e7c20b657a5323e9df66474a1c9cb4b741021e22d9831",
+  "output_path": ".local\\genq\\table-corpus\\chunks_dedup.jsonl",
+  "output_record_count": 39392,
+  "report_path": ".local\\genq\\table-corpus\\conversion_report_dedup.json",
+  "seed": "epic-genq-v1",
+  "skipped_short_count": 0,
+  "source_counts_by_split": {
+    "test": 3939,
+    "train": 31537,
+    "validation": 3916
+  },
+  "split_version": "metadata-source-hash-split-v1"
+}
