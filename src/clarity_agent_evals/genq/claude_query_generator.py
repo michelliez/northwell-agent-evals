@@ -199,11 +199,7 @@ def _single_payload(
         "messages": [
             {
                 "role": "user",
-                "content": (
-                    f"{_query_contract(queries_per_passage)}\n\n"
-                    "Passage:\n"
-                    f"{passage}"
-                ),
+                "content": (f"{_query_contract(queries_per_passage)}\n\nPassage:\n{passage}"),
             }
         ],
         "tools": [
