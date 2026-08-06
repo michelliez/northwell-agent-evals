@@ -255,6 +255,56 @@ def test_long_verbatim_passage_copy_is_rejected(tmp_path: Path) -> None:
     assert "copies_source_passage" in review["reason_codes"]
 
 
+def test_original_question_about_a_terse_table_is_kept(tmp_path: Path) -> None:
+    """A short description must not make an original question look copied.
+
+    This is the case the previous rule got wrong. It scored
+    SequenceMatcher(query, passage).ratio(), which is
+    2*matches/(len(query) + len(passage)); when a passage is only as long as the
+    query, that ratio climbs regardless of what the query says. Run at 0.35 it
+    discarded 8,352 of 16,000 generated queries, and 40.8% of those reused no
+    more vocabulary than the queries it kept.
+
+    The bias had a direction: terse tables were removed preferentially, and they
+    are the hardest to retrieve precisely because they offer little text to
+    match on.
+    """
+    passage = "Table: CL_PATEDU_COMM_ID Description: Community IDs for patient education."
+    query = "Where would I find the community identifiers assigned to patient education activities?"
+    settings = make_config(
+        tmp_path,
+        [generated_query("q_terse", query, "TABLE_A__METADATA")],
+        [split_chunk("TABLE_A__METADATA", text=passage)],
+    )
+
+    filter_queries(settings)
+    review = read_jsonl(settings.review_output_path)[0]
+
+    assert review["decision"] == "retain"
+    assert "copies_source_passage" not in review["reason_codes"]
+
+
+def test_reordered_passage_wording_is_still_rejected(tmp_path: Path) -> None:
+    """Containment does not require a verbatim substring to catch restatement.
+
+    Rearranging a description defeats a substring check while leaving every
+    content word intact, so the query still adds no term the passage lacks.
+    """
+    passage = "Table: ZC_LIFEDOSE_STATUS Description: It is available status for each entry of lifetime dose."
+    query = "What is the available status for each lifetime dose entry?"
+    settings = make_config(
+        tmp_path,
+        [generated_query("q_reordered", query, "TABLE_A__METADATA")],
+        [split_chunk("TABLE_A__METADATA", text=passage)],
+    )
+
+    filter_queries(settings)
+    review = read_jsonl(settings.review_output_path)[0]
+
+    assert review["decision"] == "reject"
+    assert "copies_source_passage" in review["reason_codes"]
+
+
 def test_provenance_mismatch_fails_without_writing_outputs(tmp_path: Path) -> None:
     settings = make_config(
         tmp_path,
