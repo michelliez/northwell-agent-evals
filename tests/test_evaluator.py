@@ -494,3 +494,249 @@ def test_missing_positive_document_excludes_query_from_metrics(tmp_path: Path) -
     assert report["resolved_query_count"] == 0
     assert report["unresolved_query_count"] == 1
     assert report["metrics"]["document"]["hit@5"] is None
+
+
+def test_unsupported_retriever_is_rejected(tmp_path: Path) -> None:
+    queries_path, qrels_path, chunk_qrels_path, catalog_path = _write_dataset(
+        tmp_path, [_query()], [_target()]
+    )
+    with pytest.raises(ValueError, match="unsupported retriever"):
+        run_retrieval_evaluation(
+            db_path=tmp_path / "index.sqlite",
+            queries_path=queries_path,
+            qrels_path=qrels_path,
+            chunk_qrels_path=chunk_qrels_path,
+            catalog_path=catalog_path,
+            retriever="bm42",
+        )
+
+
+def test_dense_retriever_requires_index_dir(tmp_path: Path) -> None:
+    queries_path, qrels_path, chunk_qrels_path, catalog_path = _write_dataset(
+        tmp_path, [_query()], [_target()]
+    )
+    with pytest.raises(ValueError, match="dense_index_dir"):
+        run_retrieval_evaluation(
+            db_path=tmp_path / "index.sqlite",
+            queries_path=queries_path,
+            qrels_path=qrels_path,
+            chunk_qrels_path=chunk_qrels_path,
+            catalog_path=catalog_path,
+            retriever="dense",
+        )
+
+
+def test_dense_index_dir_rejected_for_other_retrievers(tmp_path: Path) -> None:
+    queries_path, qrels_path, chunk_qrels_path, catalog_path = _write_dataset(
+        tmp_path, [_query()], [_target()]
+    )
+    with pytest.raises(ValueError, match="only applies to the dense retriever"):
+        run_retrieval_evaluation(
+            db_path=tmp_path / "index.sqlite",
+            queries_path=queries_path,
+            qrels_path=qrels_path,
+            chunk_qrels_path=chunk_qrels_path,
+            catalog_path=catalog_path,
+            retriever="fts",
+            dense_index_dir=tmp_path,
+        )
+
+
+def test_dense_retriever_fails_closed_on_missing_artifacts(tmp_path: Path) -> None:
+    queries_path, qrels_path, chunk_qrels_path, catalog_path = _write_dataset(
+        tmp_path, [_query()], [_target()]
+    )
+    dense_dir = tmp_path / "dense"
+    dense_dir.mkdir()
+    with pytest.raises(ValueError, match="agent-harness-genq-baseline"):
+        run_retrieval_evaluation(
+            db_path=tmp_path / "index.sqlite",
+            queries_path=queries_path,
+            qrels_path=qrels_path,
+            chunk_qrels_path=chunk_qrels_path,
+            catalog_path=catalog_path,
+            retriever="dense",
+            dense_index_dir=dense_dir,
+        )
+
+
+def test_relationship_expansion_extends_document_ranking(tmp_path: Path) -> None:
+    corpus = tmp_path / "corpus"
+    _write_html(corpus / "data.html")
+    _write_html(corpus / "related.html", "UNRELATED CONTENT")
+    db_path = tmp_path / "index.sqlite"
+    build_index(corpus, db_path, workers=1)
+
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    doc_ids = {
+        Path(str(row["source_path"])).stem: str(row["doc_id"])
+        for row in conn.execute("SELECT doc_id, source_path FROM docs")
+    }
+    evidence_chunk_id = str(
+        conn.execute("SELECT chunk_id FROM chunks WHERE doc_id = ?", (doc_ids["data"],)).fetchone()[
+            "chunk_id"
+        ]
+    )
+    conn.execute(
+        """
+        INSERT INTO table_relationships
+            (relationship_id, source_doc_id, target_doc_id, source_table, target_table,
+             source_column, target_column, ordinal, relationship_type, evidence_chunk_id)
+        VALUES (?, ?, ?, 'DATA', 'RELATED', 'RELATED_ID', 'ID', 1, 'foreign_key', ?)
+        """,
+        ("rel-1", doc_ids["data"], doc_ids["related"], evidence_chunk_id),
+    )
+    conn.commit()
+    conn.close()
+
+    queries_path, qrels_path, chunk_qrels_path, catalog_path = _write_dataset(
+        tmp_path,
+        [_query()],
+        [
+            _target(),
+            _target(target_id="Q1-D02", source_path="related.html", relevance=2),
+        ],
+        documents=[_document(), _document("related.html")],
+        chunk_targets=[_chunk_target()],
+    )
+
+    baseline = run_retrieval_evaluation(
+        db_path=db_path,
+        queries_path=queries_path,
+        qrels_path=qrels_path,
+        chunk_qrels_path=chunk_qrels_path,
+        catalog_path=catalog_path,
+        k_values=(5,),
+    )
+    expanded = run_retrieval_evaluation(
+        db_path=db_path,
+        queries_path=queries_path,
+        qrels_path=qrels_path,
+        chunk_qrels_path=chunk_qrels_path,
+        catalog_path=catalog_path,
+        retriever="fts+relationships",
+        k_values=(5,),
+    )
+
+    # FTS alone cannot see related.html: it shares no token with the query. The
+    # one-hop FK edge is the only path to it, so document recall must move from
+    # one-of-two to complete while the chunk ranking stays byte-identical.
+    assert baseline["metrics"]["document"]["recall@5"] == pytest.approx(0.5)
+    assert expanded["metrics"]["document"]["recall@5"] == pytest.approx(1.0)
+    assert expanded["retriever"] == "fts+relationships"
+    assert expanded["retriever_detail"] == {"max_related_tables": 5}
+    related = expanded["results"][0]["related_documents"]
+    assert [edge["related_document_id"] for edge in related] == [doc_ids["related"]]
+    assert [hit["chunk_id"] for hit in expanded["results"][0]["results"]] == [
+        hit["chunk_id"] for hit in baseline["results"][0]["results"]
+    ]
+
+
+def test_dense_retriever_ranks_by_inner_product(tmp_path: Path) -> None:
+    faiss = pytest.importorskip("faiss")
+    np = pytest.importorskip("numpy")
+
+    corpus = tmp_path / "corpus"
+    _write_html(corpus / "data.html")
+    _write_html(corpus / "other.html", "IMPORTANT OTHER")
+    db_path = tmp_path / "index.sqlite"
+    build_index(corpus, db_path, workers=1)
+
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    chunk_by_doc: dict[str, str] = {}
+    for row in conn.execute(
+        """
+        SELECT c.chunk_id, d.source_path
+        FROM chunks AS c
+        JOIN docs AS d ON d.doc_id = c.doc_id
+        ORDER BY d.source_path, c.chunk_index
+        """
+    ):
+        chunk_by_doc.setdefault(Path(str(row["source_path"])).stem, str(row["chunk_id"]))
+    conn.close()
+
+    dense_dir = tmp_path / "dense"
+    dense_dir.mkdir()
+    faiss_index = faiss.IndexFlatIP(2)
+    faiss_index.add(np.array([[1.0, 0.0], [0.0, 1.0]], dtype=np.float32))
+    faiss.write_index(faiss_index, str(dense_dir / "corpus.faiss"))
+    placeholder_hash = "0" * 64
+    _write_jsonl(
+        dense_dir / "chunk_mapping.jsonl",
+        [
+            {
+                "vector_position": 0,
+                "chunk_id": chunk_by_doc["data"],
+                "source_file": "data.html",
+                "table_name": "DATA",
+                "column_name": None,
+                "chunk_type": "table_metadata",
+                "text_hash": placeholder_hash,
+            },
+            {
+                "vector_position": 1,
+                "chunk_id": chunk_by_doc["other"],
+                "source_file": "other.html",
+                "table_name": "OTHER",
+                "column_name": None,
+                "chunk_type": "table_metadata",
+                "text_hash": placeholder_hash,
+            },
+        ],
+    )
+    (dense_dir / "index_metadata.json").write_text(
+        json.dumps(
+            {
+                "index_version": "pretrained-flatip-v1",
+                "model_name": "fake-model",
+                "device": "cpu",
+                "index_type": "IndexFlatIP",
+                "normalized_embeddings": True,
+                "embedding_dimension": 2,
+                "source_chunk_count": 2,
+                "indexed_chunk_count": 2,
+                "requested_limit": None,
+                "source_chunks_hash": placeholder_hash,
+                "mapping_hash": placeholder_hash,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    class _FakeEncoder:
+        model_name = "fake-model"
+        device_name = "cpu"
+
+        def encode(self, texts, *, batch_size: int, is_query: bool = False):
+            del batch_size, is_query
+            return np.array([[1.0, 0.0]] * len(texts), dtype=np.float32)
+
+    queries_path, qrels_path, chunk_qrels_path, catalog_path = _write_dataset(
+        tmp_path, [_query()], [_target()]
+    )
+
+    report = run_retrieval_evaluation(
+        db_path=db_path,
+        queries_path=queries_path,
+        qrels_path=qrels_path,
+        chunk_qrels_path=chunk_qrels_path,
+        catalog_path=catalog_path,
+        retriever="dense",
+        dense_index_dir=dense_dir,
+        dense_encoder=_FakeEncoder(),
+        k_values=(5,),
+    )
+
+    assert report["retriever"] == "dense"
+    detail = report["retriever_detail"]
+    assert detail["model_name"] == "fake-model"
+    assert detail["indexed_chunk_count"] == 2
+    result = report["results"][0]
+    assert [hit["chunk_id"] for hit in result["results"]] == [
+        chunk_by_doc["data"],
+        chunk_by_doc["other"],
+    ]
+    assert result["results"][0]["score"] == pytest.approx(1.0)
+    assert report["metrics"]["document"]["hit@5"] == 1.0

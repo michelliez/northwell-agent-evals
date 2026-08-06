@@ -18,7 +18,7 @@ from clarity_agent_evals.intent_assertions import (
     evaluate_intent_case,
     summarize_intent_results,
 )
-from clarity_agent_evals.retrieval_evaluator import run_retrieval_evaluation
+from clarity_agent_evals.retrieval_evaluator import RETRIEVERS, run_retrieval_evaluation
 
 INTENT_PROMPT_VERSION = "v6"
 
@@ -175,6 +175,9 @@ def _print_retrieval_report(report: dict[str, Any], report_path: Path) -> None:
     print("RETRIEVAL EVALUATION REPORT")
     print("=" * 80)
     print(f"Report: {report_path.name}")
+    print(f"Retriever: {report['retriever']}")
+    if report.get("retriever_detail"):
+        print(f"Retriever detail: {json.dumps(report['retriever_detail'], sort_keys=True)}")
     print(f"Chunker: {report.get('chunker_version', 'unknown')}")
     print(f"Total queries: {report['query_count']}")
     print(
@@ -254,14 +257,24 @@ def main() -> None:
     )
     parser.add_argument(
         "--retriever",
-        choices=("fts",),
+        choices=RETRIEVERS,
         default="fts",
         help="Retriever implementation for the retrieval suite.",
     )
     parser.add_argument(
+        "--dense-index-dir",
+        type=Path,
+        default=None,
+        help=(
+            "Directory holding corpus.faiss, chunk_mapping.jsonl, and "
+            "index_metadata.json from an agent-harness-genq-baseline run "
+            "(required with --retriever dense)."
+        ),
+    )
+    parser.add_argument(
         "--db",
         type=Path,
-        default=_default_index_path(),
+        default=None,
         help=(
             "SQLite RAG index for the retrieval suite "
             "(default: RAG_DB_PATH or .local/rag/index.sqlite)."
@@ -285,16 +298,21 @@ def main() -> None:
         parser.error("--repetitions must be at least 1")
     if any(k < 1 for k in args.k):
         parser.error("every --k value must be at least 1")
+    if args.retriever == "dense" and args.dense_index_dir is None:
+        parser.error("--retriever dense requires --dense-index-dir")
+    if args.retriever != "dense" and args.dense_index_dir is not None:
+        parser.error("--dense-index-dir only applies to --retriever dense")
 
     if args.suite == "retrieval":
         report = run_retrieval_evaluation(
-            db_path=args.db,
+            db_path=args.db if args.db is not None else _default_index_path(),
             queries_path=args.benchmark_dir / "retrieval_queries.jsonl",
             qrels_path=args.benchmark_dir / "retrieval_qrels.jsonl",
             chunk_qrels_path=args.benchmark_dir / "retrieval_chunk_qrels.jsonl",
             catalog_path=args.benchmark_dir / "retrieval_catalog.jsonl",
             retriever=args.retriever,
             k_values=args.k,
+            dense_index_dir=args.dense_index_dir,
         )
         report_path = write_report(report, args.results_dir, prefix="retrieval-evaluation")
         _print_retrieval_report(report, report_path)

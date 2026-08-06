@@ -6,17 +6,24 @@ import re
 import sqlite3
 import unicodedata
 from collections import defaultdict
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
+from functools import partial
 from pathlib import Path, PurePosixPath
 from time import perf_counter
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from retrieval.search import search_ranked_chunks
+from retrieval.search import expand_document_relationships, search_ranked_chunks
+
+if TYPE_CHECKING:
+    from clarity_agent_evals.genq.baseline_faiss import TextEncoder
 
 DOCUMENT_NAMESPACE = "epic_clarity"
+
+RETRIEVERS = ("fts", "fts+relationships", "dense")
+DEFAULT_MAX_RELATED_TABLES = 5
 
 
 def make_document_key(object_type: str, object_name: str) -> str:
@@ -642,14 +649,17 @@ def _get_chunker_version(conn: sqlite3.Connection) -> str:
     return str(row[0])
 
 
-def _fts_retrieve(
-    conn: sqlite3.Connection, query: str, top_k: int
-) -> tuple[list[RankedChunk], float]:
-    started = perf_counter()
-    raw_results = search_ranked_chunks(conn.cursor(), query=query, top_k=top_k)
+# A retriever returns the ranked chunks, any one-hop related documents that
+# extend the document ranking, and the wall-clock latency in milliseconds.
+RetrievalResult = tuple[list[RankedChunk], list[dict[str, Any]], float]
+RetrieverFn = Callable[[sqlite3.Connection, str, int], RetrievalResult]
+
+
+def _hydrate_ranked_chunks(
+    conn: sqlite3.Connection, hits: Sequence[tuple[str, float | None]]
+) -> list[RankedChunk]:
     ranked: list[RankedChunk] = []
-    for result in raw_results:
-        chunk_id = str(result["chunk_id"])
+    for chunk_id, score in hits:
         row = conn.execute(
             """
             SELECT c.doc_id, c.heading_path, d.source_path
@@ -661,17 +671,130 @@ def _fts_retrieve(
         ).fetchone()
         if row is None:
             raise RuntimeError(f"retriever returned missing chunk {chunk_id}")
-        score = result.get("score")
         ranked.append(
             RankedChunk(
                 chunk_id=chunk_id,
                 doc_id=str(row["doc_id"]),
                 source_path=str(row["source_path"]),
                 heading_path=str(row["heading_path"]),
-                score=float(score) if isinstance(score, (int, float)) else None,
+                score=score,
             )
         )
-    return ranked, (perf_counter() - started) * 1000
+    return ranked
+
+
+def _fts_retrieve(conn: sqlite3.Connection, query: str, top_k: int) -> RetrievalResult:
+    started = perf_counter()
+    raw_results = search_ranked_chunks(conn.cursor(), query=query, top_k=top_k)
+    hits: list[tuple[str, float | None]] = []
+    for result in raw_results:
+        score = result.get("score")
+        hits.append(
+            (str(result["chunk_id"]), float(score) if isinstance(score, (int, float)) else None)
+        )
+    ranked = _hydrate_ranked_chunks(conn, hits)
+    return ranked, [], (perf_counter() - started) * 1000
+
+
+def _fts_relationships_retrieve(
+    conn: sqlite3.Connection,
+    query: str,
+    top_k: int,
+    *,
+    max_related_tables: int,
+) -> RetrievalResult:
+    """FTS ranking followed by the agent's bounded one-hop FK expansion.
+
+    Expansion never reorders the chunk ranking; related documents are appended
+    after the FTS-ranked documents, exactly where the agent would see them.
+    """
+    started = perf_counter()
+    ranked, _, _ = _fts_retrieve(conn, query, top_k)
+    related_documents = expand_document_relationships(
+        conn.cursor(),
+        seed_document_ids=list(dict.fromkeys(item.doc_id for item in ranked)),
+        max_related_tables=max_related_tables,
+    )
+    return ranked, related_documents, (perf_counter() - started) * 1000
+
+
+def _build_dense_retriever(
+    dense_index_dir: Path,
+    *,
+    encoder: TextEncoder | None = None,
+) -> tuple[RetrieverFn, dict[str, Any]]:
+    """Load a prebuilt FAISS artifact directory into a query-time retriever.
+
+    Embedding the corpus is an offline `agent-harness-genq-baseline` run; this
+    evaluation only encodes the benchmark queries. Chunk identity carries over
+    because both artifacts are keyed by the same `INDEX_CHUNKER_VERSION`.
+    """
+    index_path = dense_index_dir / "corpus.faiss"
+    mapping_path = dense_index_dir / "chunk_mapping.jsonl"
+    metadata_path = dense_index_dir / "index_metadata.json"
+    missing = sorted(
+        path.name for path in (index_path, mapping_path, metadata_path) if not path.is_file()
+    )
+    if missing:
+        raise ValueError(
+            f"dense index directory {dense_index_dir} is missing {', '.join(missing)}; "
+            "build the artifacts with agent-harness-genq-baseline first"
+        )
+
+    from retrieval.chunk_models import BaselineIndexMetadata, FaissMappingRecord
+
+    metadata = BaselineIndexMetadata.model_validate_json(metadata_path.read_text(encoding="utf-8"))
+    chunk_id_by_position: dict[int, str] = {}
+    for line in mapping_path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        record = FaissMappingRecord.model_validate_json(line)
+        chunk_id_by_position[record.vector_position] = record.chunk_id
+    if not chunk_id_by_position:
+        raise ValueError(f"{mapping_path}: no mapping records found")
+
+    try:
+        import faiss  # pyright: ignore[reportMissingImports]
+    except ImportError as exc:
+        raise RuntimeError(
+            "The dense retriever needs the genq dependency group. Run `uv sync --group genq`."
+        ) from exc
+
+    from clarity_agent_evals.genq.baseline_faiss import _normalize_embeddings, build_encoder
+
+    faiss_index = faiss.read_index(str(index_path))
+    if faiss_index.ntotal != len(chunk_id_by_position):
+        raise ValueError(
+            f"FAISS index holds {faiss_index.ntotal} vectors but the mapping lists "
+            f"{len(chunk_id_by_position)}"
+        )
+    active_encoder = encoder or build_encoder(metadata.model_name, "auto")
+
+    detail = {
+        "dense_index_dir": str(dense_index_dir),
+        "dense_index_version": metadata.index_version,
+        "model_name": metadata.model_name,
+        "query_device": active_encoder.device_name,
+        "embedding_dimension": metadata.embedding_dimension,
+        "indexed_chunk_count": metadata.indexed_chunk_count,
+        "mapping_hash": metadata.mapping_hash,
+    }
+
+    def retrieve(conn: sqlite3.Connection, query: str, top_k: int) -> RetrievalResult:
+        started = perf_counter()
+        query_vector = _normalize_embeddings(
+            active_encoder.encode([query], batch_size=1, is_query=True), expected_rows=1
+        )
+        scores, positions = faiss_index.search(query_vector, min(top_k, faiss_index.ntotal))
+        hits: list[tuple[str, float | None]] = [
+            (chunk_id_by_position[int(position)], float(score))
+            for position, score in zip(positions[0], scores[0], strict=True)
+            if int(position) >= 0
+        ]
+        ranked = _hydrate_ranked_chunks(conn, hits)
+        return ranked, [], (perf_counter() - started) * 1000
+
+    return retrieve, detail
 
 
 def _query_metadata(query: RetrievalQuery) -> dict[str, Any]:
@@ -700,9 +823,29 @@ def run_retrieval_evaluation(
     catalog_path: Path,
     retriever: str = "fts",
     k_values: Sequence[int] = (5, 10),
+    dense_index_dir: Path | None = None,
+    dense_encoder: TextEncoder | None = None,
+    max_related_tables: int = DEFAULT_MAX_RELATED_TABLES,
 ) -> dict[str, Any]:
-    if retriever != "fts":
+    if retriever not in RETRIEVERS:
         raise ValueError(f"unsupported retriever: {retriever}")
+    if dense_index_dir is not None and retriever != "dense":
+        raise ValueError("dense_index_dir only applies to the dense retriever")
+    if max_related_tables < 1:
+        raise ValueError("max_related_tables must be at least 1")
+
+    retrieve: RetrieverFn
+    retriever_detail: dict[str, Any] = {}
+    if retriever == "dense":
+        if dense_index_dir is None:
+            raise ValueError("the dense retriever requires dense_index_dir")
+        retrieve, retriever_detail = _build_dense_retriever(dense_index_dir, encoder=dense_encoder)
+    elif retriever == "fts+relationships":
+        retrieve = partial(_fts_relationships_retrieve, max_related_tables=max_related_tables)
+        retriever_detail = {"max_related_tables": max_related_tables}
+    else:
+        retrieve = _fts_retrieve
+
     normalized_k = tuple(sorted(set(k_values)))
     if not normalized_k:
         raise ValueError("at least one K value is required")
@@ -826,8 +969,15 @@ def run_retrieval_evaluation(
                     judged_chunk_ids.add(chunk_id)
                     relevance_by_chunk_id[chunk_id] = resolved.target.relevance
 
-            ranked, latency_ms = _fts_retrieve(conn, query.query, max_k)
-            ranked_doc_ids = list(dict.fromkeys(item.doc_id for item in ranked))
+            ranked, related_documents, latency_ms = retrieve(conn, query.query, max_k)
+            # Related documents extend the document ranking after the retrieved
+            # documents; the chunk ranking is never touched by expansion.
+            ranked_doc_ids = list(
+                dict.fromkeys(
+                    [item.doc_id for item in ranked]
+                    + [str(edge["related_document_id"]) for edge in related_documents]
+                )
+            )
             ranked_chunk_ids = [item.chunk_id for item in ranked]
             unjudged_doc_ids = [doc_id for doc_id in ranked_doc_ids if doc_id not in judged_doc_ids]
             unjudged_chunk_ids = [
@@ -888,6 +1038,7 @@ def run_retrieval_evaluation(
                         }
                         for rank, item in enumerate(ranked, start=1)
                     ],
+                    "related_documents": related_documents,
                     "missed_relevant_doc_ids": sorted(
                         doc_id
                         for doc_id, relevance in relevance_by_doc_id.items()
@@ -927,6 +1078,7 @@ def run_retrieval_evaluation(
         "evaluation_levels": ["document", "chunk"],
         "generated_at": datetime.now(UTC).isoformat(),
         "retriever": retriever,
+        "retriever_detail": retriever_detail,
         "index_version": index_version,
         "chunker_version": chunker_version,
         "k_values": list(normalized_k),
