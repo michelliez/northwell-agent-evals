@@ -200,8 +200,8 @@ def _single_payload(
             {
                 "role": "user",
                 "content": (
-                    f"Generate exactly {queries_per_passage} distinct search questions "
-                    "for this passage:\n\n"
+                    f"{_query_contract(queries_per_passage)}\n\n"
+                    "Passage:\n"
                     f"{passage}"
                 ),
             }
@@ -249,8 +249,8 @@ def _batched_payload(
             {
                 "role": "user",
                 "content": (
-                    f"Generate exactly {queries_per_passage} distinct search questions for EACH "
-                    f"of the {len(passages)} passages below. Return one result object per "
+                    f"{_query_contract(queries_per_passage, each=True)} "
+                    f"Return one result object per "
                     "passage, with passage_index matching the index attribute.\n\n"
                     f"{listing}"
                 ),
@@ -290,6 +290,21 @@ def _batched_payload(
         ],
         "tool_choice": {"type": "tool", "name": "return_queries"},
     }
+
+
+def _query_contract(queries_per_passage: int, *, each: bool = False) -> str:
+    """Describe ordered query styles without changing the structured output shape."""
+    target = "for EACH passage" if each else "for this passage"
+    if queries_per_passage == 2:
+        return (
+            f"Generate exactly two distinct search questions {target}. Preserve this order: "
+            "queries[0] is identifier-aware and may name a documented table or column when "
+            "natural; queries[1] is an indirect semantic question that MUST NOT mention the "
+            "table name, column name, source filename, or copy more than two consecutive words "
+            "from the passage. The indirect question should sound like an analyst who knows the "
+            "business concept but does not know where it is documented."
+        )
+    return f"Generate exactly {queries_per_passage} distinct search questions {target}."
 
 
 def _extract_queries(response: Any, expected_count: int) -> list[str]:

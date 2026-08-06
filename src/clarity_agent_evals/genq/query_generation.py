@@ -44,7 +44,7 @@ DEFAULT_QWEN_DEVICE = "auto"
 QWEN_DEVICE_CHOICES = ("auto", "cuda", "cpu")
 
 LOGGER = logging.getLogger(__name__)
-GENERATION_VERSION = "synthetic-query-generation-v2"
+GENERATION_VERSION = "synthetic-query-generation-v3"
 DEFAULT_SEED = 42
 DEFAULT_BATCH_SIZE = 8
 DEFAULT_PASSAGES_PER_REQUEST = 1

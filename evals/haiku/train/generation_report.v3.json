@@ -1,0 +1,33 @@
+{
+  "batch_size": 10,
+  "device": "anthropic-api",
+  "duplicate_query_count": 0,
+  "eligible_chunk_count": 8000,
+  "failed_generation_chunk_count": 0,
+  "generated_query_count": 16000,
+  "generation_version": "synthetic-query-generation-v3",
+  "generator_model": "claude-haiku-4-5-20251001",
+  "input_chunk_count": 8000,
+  "input_corpus_hash": "6ddcce32e33b83d197e156ca42e23e4babacb02a599681897841d8f29c85097d",
+  "input_path": ".local/corpora/train_chunks.8000.jsonl",
+  "max_input_tokens": 200,
+  "max_query_tokens": 48,
+  "min_passage_chars": 100,
+  "output_path": ".local/queries/haiku/train/generated.v3.jsonl",
+  "output_query_hash": "a5b05417fece40608a4d2e5c2fd9bc564691dfbe3e951da9e78882c3f6bf8ab1",
+  "passages_per_request": 10,
+  "queries_per_chunk": 2,
+  "query_counts_by_chunk_type": {
+    "table_metadata": 16000
+  },
+  "query_counts_by_split": {
+    "test": 0,
+    "train": 16000,
+    "validation": 0
+  },
+  "requested_limit": null,
+  "seed": 42,
+  "selected_chunk_count": 8000,
+  "skipped_short_chunk_count": 0,
+  "top_p": 0.95
+}

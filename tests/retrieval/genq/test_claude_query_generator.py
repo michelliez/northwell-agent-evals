@@ -8,6 +8,7 @@ import pytest
 from clarity_agent_evals.genq.claude_query_generator import (
     ClaudeHaikuQueryGenerator,
     _messages_url,
+    _query_contract,
 )
 
 
@@ -26,6 +27,21 @@ class FakeMessages:
 class FakeClient:
     def __init__(self, query_batches: list[list[Any]]) -> None:
         self.messages = FakeMessages(query_batches)
+
+
+def test_two_query_contract_orders_aware_then_identifier_free() -> None:
+    contract = _query_contract(2)
+
+    assert "queries[0] is identifier-aware" in contract
+    assert "queries[1] is an indirect semantic question" in contract
+    assert "MUST NOT mention the table name" in contract
+    assert "more than two consecutive words" in contract
+
+
+def test_non_pair_query_contract_remains_generic() -> None:
+    contract = _query_contract(5, each=True)
+
+    assert contract == "Generate exactly 5 distinct search questions for EACH passage."
 
 
 def test_claude_generates_one_structured_result_per_passage() -> None:

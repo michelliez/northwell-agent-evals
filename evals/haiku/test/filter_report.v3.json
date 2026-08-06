@@ -1,0 +1,34 @@
+{
+  "chunks_path": ".local/corpora/test_chunks.jsonl",
+  "decision_counts": {
+    "reject": 2559,
+    "retain": 2311,
+    "review": 222
+  },
+  "filter_version": "deterministic-query-quality-v1",
+  "input_query_count": 5092,
+  "manual_review_query_count": 222,
+  "max_query_chars": 256,
+  "max_query_words": 32,
+  "min_query_words": 3,
+  "near_duplicate_threshold": 0.8,
+  "passage_copy_threshold": 0.35,
+  "queries_path": ".local/queries/haiku/generated_queries.test.v3.jsonl",
+  "raw_queries_hash": "6829f8db13641f7f5743242ac65e650294234cb8e31c993df5492941c100faf7",
+  "reason_counts": {
+    "copies_source_passage": 2559,
+    "no_meaningful_lexical_support": 281
+  },
+  "rejected_query_count": 2559,
+  "retained_counts_by_split": {
+    "test": 2311,
+    "train": 0,
+    "validation": 0
+  },
+  "retained_output_path": ".local/queries/haiku/reviewed/retained.test.v3.jsonl",
+  "retained_queries_hash": "11a74ca439f7a14035a3b2ce1e6d6b638cecfa472b8848af678be680eff1fc04",
+  "retained_query_count": 2311,
+  "review_ledger_hash": "5009eb8071dc7c21244b427cb97821c5c34d28adfbdaa090cbf52dff1ef497d8",
+  "review_output_path": ".local/queries/haiku/reviewed/reviews.test.v3.jsonl",
+  "source_chunks_hash": "34a2e50e8343ea4e1f2e2c7c0a5c41b32a3f43f01c959322dcdcfd8f17e55cf6"
+}

@@ -1,0 +1,32 @@
+{
+  "candidate_chunks": 2546,
+  "groups": {
+    "overall": {
+      "input_queries": 2311,
+      "evaluated_queries": 2311,
+      "unsearchable_queries": 0,
+      "hit_at_1": 0.667676,
+      "hit_at_5": 0.800087,
+      "hit_at_10": 0.840762,
+      "mrr_at_10": 0.723989
+    },
+    "identifier_aware": {
+      "input_queries": 1079,
+      "evaluated_queries": 1079,
+      "unsearchable_queries": 0,
+      "hit_at_1": 0.930491,
+      "hit_at_5": 0.980538,
+      "hit_at_10": 0.988879,
+      "mrr_at_10": 0.951142
+    },
+    "identifier_free": {
+      "input_queries": 1232,
+      "evaluated_queries": 1232,
+      "unsearchable_queries": 0,
+      "hit_at_1": 0.4375,
+      "hit_at_5": 0.642045,
+      "hit_at_10": 0.711039,
+      "mrr_at_10": 0.525046
+    }
+  }
+}
