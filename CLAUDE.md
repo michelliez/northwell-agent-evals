@@ -52,7 +52,13 @@ application because the production indexer parses the same HTML.
 | 2. Assign leakage-safe splits | `agent-harness-genq-split` | this one |
 | 3. Generate synthetic queries | `agent-harness-genq-generate` | this one |
 | 4. Filter and review | `agent-harness-genq-filter` | this one |
-| 5. Baseline and training | `agent-harness-genq-baseline`, `agent-harness-genq-train` | this one |
+| 5. Measure the set's distribution | `agent-harness-genq-diagnose` | this one |
+| 6. Baseline and training | `agent-harness-genq-baseline`, `agent-harness-genq-train` | this one |
+
+Run stage 5 before training on a set or reporting a number from it. It is the
+only check that does not depend on someone reading queries and judging whether
+they sound like something an analyst would ask, which is the judgement that does
+not scale past a few dozen.
 
 ```text
 clarity_agent_evals/       evaluation execution, assertions, dataset splits, query filters
@@ -81,15 +87,32 @@ evals/                     versioned benchmark cases and committed datasets
 
 ## Evaluation quality
 
-A benchmark that every method solves cannot rank methods. Before trusting a
-retrieval number, check that a trivial baseline does not match it: BM25 scores
-0.954 MRR on the synthetic queries against a dense encoder's 0.955, because 79%
-of those queries name their target table and a table name is unique in the
-corpus. The gold benchmark separates methods; the synthetic set is a regression
-canary only.
+A benchmark that every method solves cannot rank methods. BM25 scores 0.954 MRR
+on the synthetic queries against a dense encoder's 0.955 -- a tie to three
+decimals between a bag-of-words scorer and a 596M-parameter encoder, which is
+only possible when the task needs no notion of meaning. A table name is unique
+in the corpus, so a query that names its table has already given away the
+answer.
 
-Prefer a small human-verified benchmark over a large generated one. Report the
-gold set alongside any synthetic number, never instead of it.
+Report the identifier-free subset, never the overall figure. Split on whether
+the query names its target table: on the same set BM25 reaches 0.948 hit@1 where
+it does and 0.479 where it does not. The overall number averages a solved task
+with an unsolved one and tracks neither.
+
+The reviewed benchmark under `evals/retrieval/benchmark/` is the reference
+distribution, not merely a test set. Generated queries leak roughly twice its
+share of passage vocabulary at comparable vocabulary growth, so overlap rather
+than diversity is what separates them. Borrowed thresholds do not transfer: the
+familiar "real queries run 2-4 tokens" figure comes from search logs, while
+these benchmark queries are analyst-phrased and mode at 16.
+
+Prefer a small human-verified benchmark over a large generated one. Report it
+alongside any synthetic number, never instead of it.
+
+A filter threshold and the measure behind it are part of a dataset's identity.
+Change either and `FILTER_VERSION` moves with it, or two sets screened under
+different rules claim the same provenance and no retained record can say which
+produced it.
 
 ## Working rules
 
