@@ -5,11 +5,13 @@ synthetic-query generation, filtering, baseline embedding experiments, and bi-en
 training. It intentionally depends on the sibling application repository; the
 application does not depend on this repository.
 
-Expected sibling layout. The directory names are the repository names, so a
-default `git clone` of each produces this without renaming anything:
+Expected sibling layout. The two directory names are the repository names, so a
+default `git clone` of each produces this without renaming anything. The parent
+may be called anything and may be moved, because the dependency path is relative
+-- only the sibling relationship matters:
 
 ```text
-nw/
+<any parent>/
 ├── fixtures/                       # shared inputs, committed to neither repo
 │   ├── ClarityDictionaryHTML-full/ # the Clarity dictionary; everything derives from it
 │   ├── rag/                        # built SQLite indexes

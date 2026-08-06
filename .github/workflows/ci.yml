@@ -12,9 +12,9 @@ jobs:
     steps:
       # This repository depends on the application repository through a path
       # source (`../dsi_clarity_agent`), so a single checkout cannot install.
-      # Both are checked out as siblings under the workspace, matching the
+      # Both are checked out as siblings under $GITHUB_WORKSPACE, matching the
       # layout the README documents for a developer machine.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: dsi_clarity_agent_eval
           # The synthetic datasets are ~160 MB of LFS content that no test
@@ -22,17 +22,42 @@ jobs:
           # must pull them explicitly.
           lfs: false
 
-      - uses: actions/checkout@v4
+      # actions/checkout reports a missing credential as a bare 404 on "retrieving
+      # the default branch name", which reads like the repository does not exist.
+      # This step separates the causes before that happens, because the fix for
+      # each is different and the checkout error names none of them.
+      - name: Verify the cross-repository credential
+        env:
+          TOKEN: ${{ secrets.CLARITY_AGENT_REPO_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::CLARITY_AGENT_REPO_TOKEN is unset or empty. It must be an Actions repository secret on this repository -- Dependabot secrets and Environment secrets are stored separately and are not visible here."
+            exit 1
+          fi
+          echo "Secret is present. Checking what it can reach."
+          status=$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/NWH-Analytics-Solutions/dsi_clarity_agent)
+          echo "GET /repos/NWH-Analytics-Solutions/dsi_clarity_agent -> $status"
+          case "$status" in
+            200) echo "Credential can read the application repository." ;;
+            401) echo "::error::401: the token was rejected outright. It is expired, revoked, or was truncated when pasted into the secret."; exit 1 ;;
+            403) echo "::error::403: the token authenticated but is not permitted. It most likely lacks Repository permissions -> Contents: Read-only."; exit 1 ;;
+            404) echo "::error::404: the token authenticated but cannot see the repository at all. For a fine-grained PAT this is almost always one of: (a) still awaiting organisation approval under NWH-Analytics-Solutions -> Settings -> Personal access tokens -> Pending requests; (b) created with your personal account as resource owner instead of the organisation; (c) dsi_clarity_agent not included in its selected-repositories list."; exit 1 ;;
+            *) echo "::error::Unexpected status $status."; exit 1 ;;
+          esac
+
+      - uses: actions/checkout@v7
         with:
           repository: NWH-Analytics-Solutions/dsi_clarity_agent
           path: dsi_clarity_agent
           # GITHUB_TOKEN is scoped to this repository alone, so a cross-repository
-          # checkout needs its own credential. Create a fine-grained PAT with
-          # read access to dsi_clarity_agent and store it as this secret.
+          # checkout needs its own credential.
           token: ${{ secrets.CLARITY_AGENT_REPO_TOKEN }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v9
         with:
           version: "latest"
 

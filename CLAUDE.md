@@ -16,7 +16,7 @@ this one. The dependency is a `[tool.uv.sources]` path to a sibling checkout, so
 both must be cloned side by side under the same parent:
 
 ```text
-nw/
+<any parent>/
 ├── fixtures/                       # shared inputs, committed to neither repo
 │   ├── ClarityDictionaryHTML-full/ # the Clarity dictionary; everything derives from it
 │   ├── rag/                        # built SQLite indexes
@@ -25,8 +25,10 @@ nw/
 └── dsi_clarity_agent_eval/
 ```
 
-Directory names are the repository names, so a default `git clone` of each lands
-in the right place. `fixtures/` is shared through a directory junction rather
+The two directory names are the repository names, so a default `git clone` of
+each lands in the right place. The parent may be renamed or moved freely, because
+the dependency path is relative: only the sibling relationship is load-bearing.
+`fixtures/` is shared through a directory junction rather
 than copied, because the corpus and index are inputs to both repositories and
 too large to duplicate per clone.
 
