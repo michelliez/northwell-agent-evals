@@ -6,6 +6,7 @@
 __pycache__/
 *.py[cod]
 .local/
+graphify-out/
 dist/
 build/
 *.egg-info/
