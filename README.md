@@ -15,6 +15,7 @@ may be called anything and may be moved, because the dependency path is relative
 ├── fixtures/                       # shared inputs, committed to neither repo
 │   ├── ClarityDictionaryHTML-full/ # the Clarity dictionary; everything derives from it
 │   ├── rag/                        # built SQLite indexes
+│   ├── embeddings/                 # dense FAISS artifacts (corpus.faiss + mapping + metadata)
 │   └── models/                     # downloaded encoder weights
 ├── dsi_clarity_agent/
 └── dsi_clarity_agent_eval/
@@ -44,6 +45,36 @@ training:
 ```bash
 uv sync --group genq
 ```
+
+## Retrieval benchmark
+
+The reviewed 85-query benchmark lives in `evals/retrieval/benchmark/`. One
+runner measures four retriever arms against any compatible index; the dense
+and hybrid arms need the genq group and a FAISS artifact directory:
+
+```bash
+uv run python -m clarity_agent_evals.runner --suite retrieval \
+    --retriever fts --db ../fixtures/rag/<index>.sqlite --k 5 10 20
+# other arms: fts+relationships | dense | hybrid
+#   dense/hybrid add: --dense-index-dir ../fixtures/embeddings/dense-corpus-qwen06b
+```
+
+The frozen baseline (2026-08-10) is recorded in the application repository at
+`src/retrieval/README.md`: hybrid RRF wins overall hit@5 0.622 with zero
+identifier-bucket regressions. Rerun all arms before changing any retrieval
+configuration.
+
+Reconstructing the shared inputs without a GPU:
+
+- **Index**: `evals/retrieval/synthetic/qwen-combined-expansion-v1.jsonl`
+  (LFS) is the frozen doc2query corpus — 83,738 generated texts over 31,060
+  table chunks, questions + analyst summaries merged. Rebuild the production
+  index from a finished v5 index in minutes, CPU-only, with the application's
+  `agent-harness-rag-expansion-migrate <v5.sqlite> <corpus.jsonl> <v6.sqlite>`.
+- **Dense artifact**: `agent-harness-genq-dense-corpus` re-embeds all chunks
+  (~2.5 h CUDA, overnight on Apple MPS); with no GPU, obtain the artifact
+  directory out of band. It must be rebuilt whenever the index it was built
+  from changes.
 
 Versioned cases live in `evals/`. Generated reports, models, indexes, and private
 corpus derivatives belong under `.local/` and are not committed.

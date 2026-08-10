@@ -20,6 +20,7 @@ both must be cloned side by side under the same parent:
 ├── fixtures/                       # shared inputs, committed to neither repo
 │   ├── ClarityDictionaryHTML-full/ # the Clarity dictionary; everything derives from it
 │   ├── rag/                        # built SQLite indexes
+│   ├── embeddings/                 # dense FAISS artifacts, coupled to the index they came from
 │   └── models/                     # downloaded encoder weights
 ├── dsi_clarity_agent/
 └── dsi_clarity_agent_eval/
