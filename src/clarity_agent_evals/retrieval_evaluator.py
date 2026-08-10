@@ -7,7 +7,7 @@ import sqlite3
 import unicodedata
 from collections import defaultdict
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from enum import StrEnum
 from functools import partial
@@ -22,8 +22,10 @@ if TYPE_CHECKING:
 
 DOCUMENT_NAMESPACE = "epic_clarity"
 
-RETRIEVERS = ("fts", "fts+relationships", "dense")
+RETRIEVERS = ("fts", "fts+relationships", "dense", "hybrid")
 DEFAULT_MAX_RELATED_TABLES = 5
+RRF_K = 60
+HYBRID_CANDIDATE_MULTIPLIER = 2
 
 
 def make_document_key(object_type: str, object_name: str) -> str:
@@ -797,6 +799,49 @@ def _build_dense_retriever(
     return retrieve, detail
 
 
+def _build_hybrid_retriever(
+    dense_index_dir: Path,
+    *,
+    encoder: TextEncoder | None = None,
+) -> tuple[RetrieverFn, dict[str, Any]]:
+    """Reciprocal-rank fusion of the FTS and dense chunk rankings.
+
+    Each arm contributes its top ``top_k * HYBRID_CANDIDATE_MULTIPLIER`` chunks;
+    a chunk's fused score is the sum of ``1 / (RRF_K + rank)`` over the lists
+    that contain it. Rank positions carry the signal rather than raw scores, so
+    BM25 and inner-product scales never need calibrating against each other.
+    The document ranking derives from the fused chunk order, exactly as it does
+    for the single-arm retrievers.
+    """
+    dense_retrieve, dense_detail = _build_dense_retriever(dense_index_dir, encoder=encoder)
+    detail = {
+        **dense_detail,
+        "fusion": "reciprocal_rank",
+        "rrf_k": RRF_K,
+        "candidate_multiplier": HYBRID_CANDIDATE_MULTIPLIER,
+    }
+
+    def retrieve(conn: sqlite3.Connection, query: str, top_k: int) -> RetrievalResult:
+        started = perf_counter()
+        depth = top_k * HYBRID_CANDIDATE_MULTIPLIER
+        fts_ranked, _, _ = _fts_retrieve(conn, query, depth)
+        dense_ranked, _, _ = dense_retrieve(conn, query, depth)
+        fused_scores: dict[str, float] = defaultdict(float)
+        chunk_by_id: dict[str, RankedChunk] = {}
+        for ranked_list in (fts_ranked, dense_ranked):
+            for rank, item in enumerate(ranked_list, start=1):
+                fused_scores[item.chunk_id] += 1.0 / (RRF_K + rank)
+                chunk_by_id.setdefault(item.chunk_id, item)
+        # Ties break on chunk_id so two runs of the same query rank identically.
+        ordered = sorted(fused_scores.items(), key=lambda pair: (-pair[1], pair[0]))
+        ranked = [
+            replace(chunk_by_id[chunk_id], score=score) for chunk_id, score in ordered[:top_k]
+        ]
+        return ranked, [], (perf_counter() - started) * 1000
+
+    return retrieve, detail
+
+
 def _query_metadata(query: RetrievalQuery) -> dict[str, Any]:
     return {
         "query_id": query.query_id,
@@ -829,17 +874,18 @@ def run_retrieval_evaluation(
 ) -> dict[str, Any]:
     if retriever not in RETRIEVERS:
         raise ValueError(f"unsupported retriever: {retriever}")
-    if dense_index_dir is not None and retriever != "dense":
-        raise ValueError("dense_index_dir only applies to the dense retriever")
+    if dense_index_dir is not None and retriever not in ("dense", "hybrid"):
+        raise ValueError("dense_index_dir only applies to the dense and hybrid retrievers")
     if max_related_tables < 1:
         raise ValueError("max_related_tables must be at least 1")
 
     retrieve: RetrieverFn
     retriever_detail: dict[str, Any] = {}
-    if retriever == "dense":
+    if retriever in ("dense", "hybrid"):
         if dense_index_dir is None:
-            raise ValueError("the dense retriever requires dense_index_dir")
-        retrieve, retriever_detail = _build_dense_retriever(dense_index_dir, encoder=dense_encoder)
+            raise ValueError(f"the {retriever} retriever requires dense_index_dir")
+        build = _build_hybrid_retriever if retriever == "hybrid" else _build_dense_retriever
+        retrieve, retriever_detail = build(dense_index_dir, encoder=dense_encoder)
     elif retriever == "fts+relationships":
         retrieve = partial(_fts_relationships_retrieve, max_related_tables=max_related_tables)
         retriever_detail = {"max_related_tables": max_related_tables}

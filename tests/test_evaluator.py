@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 from retrieval.indexer import build_index
+from retrieval.search import search_ranked_chunks
 
 from clarity_agent_evals.retrieval_evaluator import (
     RetrievalChunkTarget,
@@ -229,14 +230,14 @@ def test_reviewed_benchmark_covers_analyst_failure_buckets() -> None:
     )
 
     assert Counter(query.failure_bucket for query in queries) == {
-        "named_table_lookup": 10,
-        "named_column_schema": 10,
-        "business_concept_discovery": 11,
-        "cross_table_synthesis": 10,
-        "negative_unsupported": 9,
+        "named_table_lookup": 15,
+        "named_column_schema": 16,
+        "business_concept_discovery": 25,
+        "cross_table_synthesis": 18,
+        "negative_unsupported": 11,
     }
-    assert len(targets) == 72
-    assert len(chunk_targets) == 115
+    assert len(targets) == 119
+    assert len(chunk_targets) == 163
     assert all("analyst_phrased" in query.tags for query in queries)
 
     # The original 17 documents were the head and tail of a directory listing.
@@ -530,7 +531,7 @@ def test_dense_index_dir_rejected_for_other_retrievers(tmp_path: Path) -> None:
     queries_path, qrels_path, chunk_qrels_path, catalog_path = _write_dataset(
         tmp_path, [_query()], [_target()]
     )
-    with pytest.raises(ValueError, match="only applies to the dense retriever"):
+    with pytest.raises(ValueError, match="only applies to the dense and hybrid retrievers"):
         run_retrieval_evaluation(
             db_path=tmp_path / "index.sqlite",
             queries_path=queries_path,
@@ -539,6 +540,21 @@ def test_dense_index_dir_rejected_for_other_retrievers(tmp_path: Path) -> None:
             catalog_path=catalog_path,
             retriever="fts",
             dense_index_dir=tmp_path,
+        )
+
+
+def test_hybrid_retriever_requires_index_dir(tmp_path: Path) -> None:
+    queries_path, qrels_path, chunk_qrels_path, catalog_path = _write_dataset(
+        tmp_path, [_query()], [_target()]
+    )
+    with pytest.raises(ValueError, match="hybrid retriever requires dense_index_dir"):
+        run_retrieval_evaluation(
+            db_path=tmp_path / "index.sqlite",
+            queries_path=queries_path,
+            qrels_path=qrels_path,
+            chunk_qrels_path=chunk_qrels_path,
+            catalog_path=catalog_path,
+            retriever="hybrid",
         )
 
 
@@ -740,3 +756,130 @@ def test_dense_retriever_ranks_by_inner_product(tmp_path: Path) -> None:
     ]
     assert result["results"][0]["score"] == pytest.approx(1.0)
     assert report["metrics"]["document"]["hit@5"] == 1.0
+
+
+def test_hybrid_retriever_fuses_fts_and_dense_rankings(tmp_path: Path) -> None:
+    faiss = pytest.importorskip("faiss")
+    np = pytest.importorskip("numpy")
+
+    corpus = tmp_path / "corpus"
+    _write_html(corpus / "data.html")
+    _write_html(corpus / "unrelated.html", "DISTANT CONTENT")
+    db_path = tmp_path / "index.sqlite"
+    build_index(corpus, db_path, workers=1)
+
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    unrelated_chunk = str(
+        conn.execute(
+            """
+            SELECT c.chunk_id
+            FROM chunks AS c
+            JOIN docs AS d ON d.doc_id = c.doc_id
+            WHERE d.source_path LIKE '%unrelated.html'
+            ORDER BY c.chunk_index
+            """
+        ).fetchone()["chunk_id"]
+    )
+    # Pin the dense mapping to FTS's own top chunk so the fused scores are
+    # deterministic: that chunk earns rank 1 in FTS plus rank 2 in dense.
+    fts_top_chunk = str(
+        search_ranked_chunks(conn.cursor(), query="important value", top_k=1)[0]["chunk_id"]
+    )
+    conn.close()
+
+    dense_dir = tmp_path / "dense"
+    dense_dir.mkdir()
+    faiss_index = faiss.IndexFlatIP(2)
+    faiss_index.add(np.array([[1.0, 0.0], [0.5, 0.5]], dtype=np.float32))
+    faiss.write_index(faiss_index, str(dense_dir / "corpus.faiss"))
+    placeholder_hash = "0" * 64
+    _write_jsonl(
+        dense_dir / "chunk_mapping.jsonl",
+        [
+            {
+                "vector_position": 0,
+                "chunk_id": unrelated_chunk,
+                "source_file": "unrelated.html",
+                "table_name": "UNRELATED",
+                "column_name": None,
+                "chunk_type": "table_metadata",
+                "text_hash": placeholder_hash,
+            },
+            {
+                "vector_position": 1,
+                "chunk_id": fts_top_chunk,
+                "source_file": "data.html",
+                "table_name": "DATA",
+                "column_name": None,
+                "chunk_type": "table_metadata",
+                "text_hash": placeholder_hash,
+            },
+        ],
+    )
+    (dense_dir / "index_metadata.json").write_text(
+        json.dumps(
+            {
+                "index_version": "pretrained-flatip-v1",
+                "model_name": "fake-model",
+                "device": "cpu",
+                "index_type": "IndexFlatIP",
+                "normalized_embeddings": True,
+                "embedding_dimension": 2,
+                "source_chunk_count": 2,
+                "indexed_chunk_count": 2,
+                "requested_limit": None,
+                "source_chunks_hash": placeholder_hash,
+                "mapping_hash": placeholder_hash,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    class _FakeEncoder:
+        model_name = "fake-model"
+        device_name = "cpu"
+
+        def encode(self, texts, *, batch_size: int, is_query: bool = False):
+            del batch_size, is_query
+            return np.array([[1.0, 0.0]] * len(texts), dtype=np.float32)
+
+    queries_path, qrels_path, chunk_qrels_path, catalog_path = _write_dataset(
+        tmp_path,
+        [_query()],
+        [
+            _target(),
+            _target(target_id="Q1-D02", source_path="unrelated.html", relevance=2),
+        ],
+        documents=[_document(), _document("unrelated.html")],
+        chunk_targets=[_chunk_target()],
+    )
+
+    report = run_retrieval_evaluation(
+        db_path=db_path,
+        queries_path=queries_path,
+        qrels_path=qrels_path,
+        chunk_qrels_path=chunk_qrels_path,
+        catalog_path=catalog_path,
+        retriever="hybrid",
+        dense_index_dir=dense_dir,
+        dense_encoder=_FakeEncoder(),
+        k_values=(5,),
+    )
+
+    assert report["retriever"] == "hybrid"
+    detail = report["retriever_detail"]
+    assert detail["fusion"] == "reciprocal_rank"
+    assert detail["rrf_k"] == 60
+    assert detail["model_name"] == "fake-model"
+
+    # The query shares no token with unrelated.html, so FTS alone leaves its
+    # document unreachable; dense ranks it first. Fusion must surface both:
+    # the chunk present in both lists takes the top fused slot, and the
+    # dense-only document completes recall.
+    hits = report["results"][0]["results"]
+    assert hits[0]["chunk_id"] == fts_top_chunk
+    fused_by_chunk = {hit["chunk_id"]: hit["score"] for hit in hits}
+    assert fused_by_chunk[fts_top_chunk] == pytest.approx(1 / 61 + 1 / 62)
+    assert fused_by_chunk[unrelated_chunk] == pytest.approx(1 / 61)
+    assert report["metrics"]["document"]["recall@5"] == pytest.approx(1.0)

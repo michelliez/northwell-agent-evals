@@ -267,8 +267,8 @@ def main() -> None:
         default=None,
         help=(
             "Directory holding corpus.faiss, chunk_mapping.jsonl, and "
-            "index_metadata.json from an agent-harness-genq-baseline run "
-            "(required with --retriever dense)."
+            "index_metadata.json keyed by runtime chunk IDs "
+            "(required with --retriever dense or hybrid)."
         ),
     )
     parser.add_argument(
@@ -298,10 +298,10 @@ def main() -> None:
         parser.error("--repetitions must be at least 1")
     if any(k < 1 for k in args.k):
         parser.error("every --k value must be at least 1")
-    if args.retriever == "dense" and args.dense_index_dir is None:
-        parser.error("--retriever dense requires --dense-index-dir")
-    if args.retriever != "dense" and args.dense_index_dir is not None:
-        parser.error("--dense-index-dir only applies to --retriever dense")
+    if args.retriever in ("dense", "hybrid") and args.dense_index_dir is None:
+        parser.error(f"--retriever {args.retriever} requires --dense-index-dir")
+    if args.retriever not in ("dense", "hybrid") and args.dense_index_dir is not None:
+        parser.error("--dense-index-dir only applies to --retriever dense or hybrid")
 
     if args.suite == "retrieval":
         report = run_retrieval_evaluation(
