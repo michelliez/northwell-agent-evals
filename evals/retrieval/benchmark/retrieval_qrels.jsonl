@@ -70,3 +70,50 @@
 {"target_id": "Q45-D01", "query_id": "Q45", "document_key": "epic_clarity:table:PAT_ENC_DX", "relevance": 3, "relevance_rationale": "Composite key leads with PAT_ENC_CSN_ID."}
 {"target_id": "Q45-D02", "query_id": "Q45", "document_key": "epic_clarity:table:PAT_ENC_HSP", "relevance": 2, "relevance_rationale": "Keyed by the same encounter identifier."}
 {"target_id": "Q45-D03", "query_id": "Q45", "document_key": "epic_clarity:table:PAT_ENC", "relevance": 2, "relevance_rationale": "Keyed by the same encounter identifier."}
+{"target_id":"Q51-D01","query_id":"Q51","document_key":"epic_clarity:table:ORDER_RESULTS","relevance":3,"relevance_rationale":"ORDER_RESULTS metadata and primary-key chunks directly answer the table grain and key."}
+{"target_id":"Q52-D01","query_id":"Q52","document_key":"epic_clarity:table:ARPB_TRANSACTIONS","relevance":3,"relevance_rationale":"ARPB_TRANSACTIONS metadata and primary-key chunks directly answer purpose and key."}
+{"target_id":"Q53-D01","query_id":"Q53","document_key":"epic_clarity:table:IP_FLWSHT_MEAS","relevance":3,"relevance_rationale":"IP_FLWSHT_MEAS metadata and primary-key chunks directly answer purpose and composite key."}
+{"target_id":"Q54-D01","query_id":"Q54","document_key":"epic_clarity:table:IP_FLWSHT_REC","relevance":3,"relevance_rationale":"IP_FLWSHT_REC metadata and primary-key chunks directly answer purpose and key."}
+{"target_id":"Q55-D01","query_id":"Q55","document_key":"epic_clarity:table:ACCOUNT","relevance":3,"relevance_rationale":"ACCOUNT metadata and primary-key chunks directly answer purpose and key."}
+{"target_id":"Q56-D01","query_id":"Q56","document_key":"epic_clarity:table:ORDER_PROC","relevance":3,"relevance_rationale":"ORDER_PROC column-info for ORDER_STATUS_C directly answers the column meaning and type."}
+{"target_id":"Q57-D01","query_id":"Q57","document_key":"epic_clarity:table:ORDER_MED","relevance":3,"relevance_rationale":"ORDER_MED column-info for HV_DISCRETE_DOSE and DOSE_UNIT_C directly answers both columns."}
+{"target_id":"Q58-D01","query_id":"Q58","document_key":"epic_clarity:table:ORDER_RESULTS","relevance":3,"relevance_rationale":"ORDER_RESULTS column-info for RESULT_FLAG_C directly answers the column meaning."}
+{"target_id":"Q59-D01","query_id":"Q59","document_key":"epic_clarity:table:ARPB_TRANSACTIONS","relevance":3,"relevance_rationale":"ARPB_TRANSACTIONS column-info for AMOUNT and OUTSTANDING_AMT documents both."}
+{"target_id":"Q60-D01","query_id":"Q60","document_key":"epic_clarity:table:IP_FLWSHT_MEAS","relevance":3,"relevance_rationale":"IP_FLWSHT_MEAS column-info for MEAS_VALUE documents the column."}
+{"target_id":"Q61-D01","query_id":"Q61","document_key":"epic_clarity:table:CLARITY_ADT","relevance":3,"relevance_rationale":"CLARITY_ADT column-info for EVENT_TYPE_C documents the event classification."}
+{"target_id":"Q62-D01","query_id":"Q62","document_key":"epic_clarity:table:PAT_ENC","relevance":3,"relevance_rationale":"PAT_ENC has HOSP_ADMSN_TIME and HOSP_DISCHRG_TIME for computing length of stay."}
+{"target_id":"Q62-D02","query_id":"Q62","document_key":"epic_clarity:table:CLARITY_ADT","relevance":2,"relevance_rationale":"CLARITY_ADT admission/discharge events provide alternative LOS boundaries."}
+{"target_id":"Q63-D01","query_id":"Q63","document_key":"epic_clarity:table:ORDER_MED","relevance":3,"relevance_rationale":"ORDER_MED has DISP_AS_WRITTEN_YN documenting the dispense-as-written flag."}
+{"target_id":"Q64-D01","query_id":"Q64","document_key":"epic_clarity:table:ARPB_TRANSACTIONS","relevance":3,"relevance_rationale":"ARPB_TRANSACTIONS has AMOUNT and OUTSTANDING_AMT for charge and unpaid balance."}
+{"target_id":"Q65-D01","query_id":"Q65","document_key":"epic_clarity:table:IP_FLWSHT_MEAS","relevance":3,"relevance_rationale":"IP_FLWSHT_MEAS stores individual measurements with MEAS_VALUE and RECORDED_TIME."}
+{"target_id":"Q65-D02","query_id":"Q65","document_key":"epic_clarity:table:IP_FLWSHT_REC","relevance":2,"relevance_rationale":"IP_FLWSHT_REC is the parent header linking measurements to inpatient stays."}
+{"target_id":"Q66-D01","query_id":"Q66","document_key":"epic_clarity:table:ORDER_RESULTS","relevance":3,"relevance_rationale":"ORDER_RESULTS has RESULT_FLAG_C, RESULT_IN_RANGE_YN, REFERENCE_LOW, REFERENCE_HIGH."}
+{"target_id":"Q67-D01","query_id":"Q67","document_key":"epic_clarity:table:ACCOUNT","relevance":3,"relevance_rationale":"ACCOUNT has TOTAL_BALANCE, INSURANCE_BALANCE, PATIENT_BALANCE for balance split."}
+{"target_id":"Q68-D01","query_id":"Q68","document_key":"epic_clarity:table:CLARITY_ADT","relevance":3,"relevance_rationale":"CLARITY_ADT has BED_ID, BED_CSN_ID, ROOM_ID, ROOM_CSN_ID, DEPARTMENT_ID for bed tracking."}
+{"target_id":"Q69-D01","query_id":"Q69","document_key":"epic_clarity:table:ORDER_MED","relevance":3,"relevance_rationale":"ORDER_MED has WEIGHT_BASED_YN, ORD_TM_WEIGHT, REVIEW_WEIGHT for weight-based dosing."}
+{"target_id":"Q70-D01","query_id":"Q70","document_key":"epic_clarity:table:ORDER_PROC","relevance":3,"relevance_rationale":"ORDER_PROC has procedure performance times and order placement times."}
+{"target_id":"Q71-D01","query_id":"Q71","document_key":"epic_clarity:table:ACCOUNT","relevance":3,"relevance_rationale":"ACCOUNT has PMT_PLAN_ON_TIME_YN, PMT_PLAN_BAL_PD_YN and payment plan detail columns."}
+{"target_id":"Q72-D01","query_id":"Q72","document_key":"epic_clarity:table:PAT_ENC","relevance":3,"relevance_rationale":"PAT_ENC has COPAY_DUE and COPAY_COLLECTED for copay tracking."}
+{"target_id":"Q73-D01","query_id":"Q73","document_key":"epic_clarity:table:ORDER_PROC","relevance":3,"relevance_rationale":"ORDER_PROC has ORDER_INST, ORDER_TIME, RESULT_TIME, REVIEW_TIME for lifecycle."}
+{"target_id":"Q74-D01","query_id":"Q74","document_key":"epic_clarity:table:ORDER_PROC","relevance":3,"relevance_rationale":"ORDER_PROC has REFERRING_PROV_ID, REFD_TO_SPECLTY_C, REFD_TO_LOC_ID, RFL_TYPE_C."}
+{"target_id":"Q75-D01","query_id":"Q75","document_key":"epic_clarity:table:ARPB_TRANSACTIONS","relevance":3,"relevance_rationale":"ARPB_TRANSACTIONS FK documents PAT_ENC_CSN_ID linking to encounters."}
+{"target_id":"Q75-D02","query_id":"Q75","document_key":"epic_clarity:table:PAT_ENC","relevance":3,"relevance_rationale":"PAT_ENC PK is PAT_ENC_CSN_ID which is the join target."}
+{"target_id":"Q76-D01","query_id":"Q76","document_key":"epic_clarity:table:IP_FLWSHT_MEAS","relevance":3,"relevance_rationale":"IP_FLWSHT_MEAS FK documents FSD_ID link to IP_FLWSHT_REC."}
+{"target_id":"Q76-D02","query_id":"Q76","document_key":"epic_clarity:table:IP_FLWSHT_REC","relevance":3,"relevance_rationale":"IP_FLWSHT_REC FK documents INPATIENT_DATA_ID link."}
+{"target_id":"Q76-D03","query_id":"Q76","document_key":"epic_clarity:table:PAT_ENC","relevance":2,"relevance_rationale":"PAT_ENC has INPATIENT_DATA_ID column completing the join path."}
+{"target_id":"Q77-D01","query_id":"Q77","document_key":"epic_clarity:table:ORDER_RESULTS","relevance":3,"relevance_rationale":"ORDER_RESULTS PK includes ORDER_PROC_ID which is the FK to ORDER_PROC."}
+{"target_id":"Q77-D02","query_id":"Q77","document_key":"epic_clarity:table:ORDER_PROC","relevance":3,"relevance_rationale":"ORDER_PROC PK is ORDER_PROC_ID which is the join target."}
+{"target_id":"Q78-D01","query_id":"Q78","document_key":"epic_clarity:table:ORDER_MED","relevance":3,"relevance_rationale":"ORDER_MED FK documents PAT_ENC_CSN_ID linking to PAT_ENC."}
+{"target_id":"Q78-D02","query_id":"Q78","document_key":"epic_clarity:table:PAT_ENC","relevance":3,"relevance_rationale":"PAT_ENC FK documents ACCOUNT_ID linking to ACCOUNT."}
+{"target_id":"Q78-D03","query_id":"Q78","document_key":"epic_clarity:table:ACCOUNT","relevance":2,"relevance_rationale":"ACCOUNT PK is ACCOUNT_ID which is the final join target."}
+{"target_id":"Q79-D01","query_id":"Q79","document_key":"epic_clarity:table:ARPB_TRANSACTIONS","relevance":3,"relevance_rationale":"ARPB_TRANSACTIONS FK documents ACCOUNT_ID linking to ACCOUNT."}
+{"target_id":"Q79-D02","query_id":"Q79","document_key":"epic_clarity:table:ACCOUNT","relevance":3,"relevance_rationale":"ACCOUNT PK is ACCOUNT_ID and columns include balance and billing status."}
+{"target_id":"Q80-D01","query_id":"Q80","document_key":"epic_clarity:table:ORDER_PROC","relevance":3,"relevance_rationale":"ORDER_PROC PK is ORDER_PROC_ID and FK lists ORDER_RESULTS as destination."}
+{"target_id":"Q80-D02","query_id":"Q80","document_key":"epic_clarity:table:ORDER_RESULTS","relevance":3,"relevance_rationale":"ORDER_RESULTS PK includes ORDER_PROC_ID and has the result value columns."}
+{"target_id":"Q81-D01","query_id":"Q81","document_key":"epic_clarity:table:CLARITY_ADT","relevance":3,"relevance_rationale":"CLARITY_ADT has PAT_ENC_CSN_ID linking ADT events to encounters."}
+{"target_id":"Q81-D02","query_id":"Q81","document_key":"epic_clarity:table:ORDER_PROC","relevance":3,"relevance_rationale":"ORDER_PROC has PAT_ENC_CSN_ID linking orders to encounters."}
+{"target_id":"Q82-D01","query_id":"Q82","document_key":"epic_clarity:table:IP_FLWSHT_MEAS","relevance":3,"relevance_rationale":"IP_FLWSHT_MEAS has FSD_ID to link to IP_FLWSHT_REC."}
+{"target_id":"Q82-D02","query_id":"Q82","document_key":"epic_clarity:table:IP_FLWSHT_REC","relevance":3,"relevance_rationale":"IP_FLWSHT_REC has INPATIENT_DATA_ID and FSD_ID."}
+{"target_id":"Q82-D03","query_id":"Q82","document_key":"epic_clarity:table:PAT_ENC","relevance":2,"relevance_rationale":"PAT_ENC has INPATIENT_DATA_ID and PAT_ENC_CSN_ID connecting to CLARITY_ADT."}
+{"target_id":"Q82-D04","query_id":"Q82","document_key":"epic_clarity:table:CLARITY_ADT","relevance":3,"relevance_rationale":"CLARITY_ADT has BED_ID, EFFECTIVE_TIME, PAT_ENC_CSN_ID for bed assignments."}
+{"target_id":"Q85-D01","query_id":"Q85","document_key":"epic_clarity:table:ORDER_PROC","relevance":3,"relevance_rationale":"ORDER_PROC has ORDER_STATUS_C, LAB_STATUS_C, and IS_PENDING_ORD_YN for completion state."}

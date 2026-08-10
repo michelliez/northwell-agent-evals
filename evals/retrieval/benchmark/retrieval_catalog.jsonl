@@ -27,3 +27,8 @@
 {"document_key": "epic_clarity:table:CLARITY_EAP", "source_system": "epic_clarity", "object_type": "table", "object_name": "CLARITY_EAP", "source_path": "CLARITY_EAP.html"}
 {"document_key": "epic_clarity:table:PAT_ENC_DX", "source_system": "epic_clarity", "object_type": "table", "object_name": "PAT_ENC_DX", "source_path": "PAT_ENC_DX.html"}
 {"document_key": "epic_clarity:table:PROBLEM_LIST", "source_system": "epic_clarity", "object_type": "table", "object_name": "PROBLEM_LIST", "source_path": "PROBLEM_LIST.html"}
+{"document_key":"epic_clarity:table:ORDER_RESULTS","source_system":"epic_clarity","object_type":"table","object_name":"ORDER_RESULTS","source_path":"ORDER_RESULTS.html"}
+{"document_key":"epic_clarity:table:IP_FLWSHT_MEAS","source_system":"epic_clarity","object_type":"table","object_name":"IP_FLWSHT_MEAS","source_path":"IP_FLWSHT_MEAS.html"}
+{"document_key":"epic_clarity:table:IP_FLWSHT_REC","source_system":"epic_clarity","object_type":"table","object_name":"IP_FLWSHT_REC","source_path":"IP_FLWSHT_REC.html"}
+{"document_key":"epic_clarity:table:ARPB_TRANSACTIONS","source_system":"epic_clarity","object_type":"table","object_name":"ARPB_TRANSACTIONS","source_path":"ARPB_TRANSACTIONS.html"}
+{"document_key":"epic_clarity:table:ACCOUNT","source_system":"epic_clarity","object_type":"table","object_name":"ACCOUNT","source_path":"ACCOUNT.html"}
