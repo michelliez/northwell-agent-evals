@@ -19,6 +19,7 @@ agent-harness-genq-filter = "clarity_agent_evals.query_filter:main"
 agent-harness-genq-diagnose = "clarity_agent_evals.genq.diagnostics:main"
 agent-harness-genq-metadata-convert = "clarity_agent_evals.genq.metadata_to_chunks:main"
 agent-harness-genq-baseline = "clarity_agent_evals.genq.baseline_faiss:main"
+agent-harness-genq-dense-corpus = "clarity_agent_evals.genq.dense_corpus:main"
 agent-harness-genq-train = "clarity_agent_evals.genq.train_biencoder:main"
 agent-harness-genq-columns = "clarity_agent_evals.genq.column_extractor:main"
 
