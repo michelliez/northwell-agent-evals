@@ -30,8 +30,8 @@ Reports are written to `.local/evals/retrieval-evaluation-<timestamp>.json`.
 
 ## Reviewed failure buckets
 
-The tracked benchmark uses analyst-written questions rather than phrases copied
-from HTML descriptions. Its 50 queries cover five retrieval failure buckets:
+The tracked benchmark uses analyst-phrased questions rather than phrases copied
+from HTML descriptions. Its 260 queries cover five retrieval failure buckets:
 
 - `named_table_lookup`: a known table must yield its purpose or grain;
 - `named_column_schema`: known fields must yield types, meanings, or key roles;
@@ -40,9 +40,11 @@ from HTML descriptions. Its 50 queries cover five retrieval failure buckets:
 - `negative_unsupported`: the corpus does not support the requested answer.
 
 The query file records `failure_bucket`, and reports include document- and
-chunk-level metrics for each bucket. The 110 chunk qrels are manually reviewed
-against the column-level v5 index; do not regenerate them from source
-descriptions or mechanically patch old heading paths.
+chunk-level metrics for each bucket. Of the 435 chunk qrels, those for Q01–Q85
+are manually reviewed against the column-level index; those for Q86–Q260 are
+model-authored and mechanically verified to resolve (heading, category, and
+required terms matched against the live index). Do not regenerate qrels from
+source descriptions or mechanically patch old heading paths.
 
 ## Coverage
 
@@ -55,8 +57,18 @@ representative 0.04% of the corpus.
 Queries Q25–Q50 add twelve tables analysts actually use: `PAT_ENC`,
 `PAT_ENC_HSP`, `CLARITY_ADT`, `ORDER_PROC`, `ORDER_MED`, `PATIENT`,
 `CLARITY_SER`, `CLARITY_DEP`, `HSP_ACCOUNT`, `CLARITY_EAP`, `PAT_ENC_DX`, and
-`PROBLEM_LIST`. Keep extending along that axis: representativeness of the tables
-matters more than query count.
+`PROBLEM_LIST`. Q51–Q85 extend the same high-traffic axis (reviewed 2026-08-10).
+
+Q86–Q260 are the stratified extension (2026-08-11): a coverage audit showed the
+first 85 queries touched 14 of 2,498 table-name families while oversampling the
+alphabetical head of the corpus, and a power analysis showed ~200 scored
+queries were needed to certify retrieval-arm differences of ~8 points of hit@5.
+The 175 added queries target 23 previously uncovered families (surgical,
+pharmacy, lab, MyChart, home health, billing, and others), no family exceeding
+15% of the additions. Provenance: model-generated from dictionary content,
+spot-checked rather than per-query reviewed. Representativeness of the tables
+still matters more than query count — the open gap is validating the query
+distribution against real analyst demand.
 
 ## Judgment scope and what each metric means
 

@@ -230,14 +230,14 @@ def test_reviewed_benchmark_covers_analyst_failure_buckets() -> None:
     )
 
     assert Counter(query.failure_bucket for query in queries) == {
-        "named_table_lookup": 15,
-        "named_column_schema": 16,
-        "business_concept_discovery": 25,
-        "cross_table_synthesis": 18,
-        "negative_unsupported": 11,
+        "named_table_lookup": 40,
+        "named_column_schema": 46,
+        "business_concept_discovery": 77,
+        "cross_table_synthesis": 61,
+        "negative_unsupported": 36,
     }
-    assert len(targets) == 119
-    assert len(chunk_targets) == 163
+    assert len(targets) == 316
+    assert len(chunk_targets) == 435
     assert all("analyst_phrased" in query.tags for query in queries)
 
     # The original 17 documents were the head and tail of a directory listing.
