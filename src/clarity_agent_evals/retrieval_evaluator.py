@@ -715,6 +715,7 @@ def _fts_relationships_retrieve(
     related_documents = expand_document_relationships(
         conn.cursor(),
         seed_document_ids=list(dict.fromkeys(item.doc_id for item in ranked)),
+        query=query,
         max_related_tables=max_related_tables,
     )
     return ranked, related_documents, (perf_counter() - started) * 1000
