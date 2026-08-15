@@ -1,0 +1,32 @@
+{
+  "claude_generated_query_count": 994,
+  "failed_group_count": 6,
+  "failed_relationship_group_ids": [
+    "4501e24b332ba5b26cf0d5f252e96c8879054fb687e536d9d3056c28feaa5512",
+    "63fc7eb2c83c78a9b938a4aec2254a733b4ca99a529170b5e1179defccd0fbe3",
+    "b069267e17dabaaab44fa6640c584a910ba1ef1ac7f4489011123d95fe225afa",
+    "c0b155b9bd3312e96496b7d2f2763bae75127fce0f86b554cfe0f4b300aeeb78",
+    "d14c6db778a12329d5dac4a3712a7883918857523b7ffae5c980d6f15a2e4df6",
+    "f62a3f69f0f3cc560d8bf37e5789fa7a73fba59afb96a4487df52682a21b049c"
+  ],
+  "generated_query_count": 1988,
+  "generation_version": "relationship-query-generation-v2",
+  "generator_model": "claude-haiku-4-5-20251001",
+  "identifier_aware_template_version": "relationship-aware-template-v1",
+  "input_group_count": 1000,
+  "input_hash": "b75a1a00a98750e8711d7bb23a2d5c7b19758ed24e227be73802bbf60fd03ab4",
+  "input_path": ".local/relationships/validation_relationships.jsonl",
+  "max_input_tokens": 400,
+  "max_query_tokens": 64,
+  "output_hash": "84b3f816f92f625461dd918b183a2e6a6b4dbd22c4e6fc0ce208940e8156c67f",
+  "output_path": ".local/relationships/queries/validation.generated.v2.jsonl",
+  "query_counts_by_type": {
+    "identifier_aware": 1000,
+    "identifier_free": 1000
+  },
+  "relationships_per_request": 10,
+  "seed": 42,
+  "selected_group_count": 1000,
+  "successful_group_count": 994,
+  "top_p": 0.95
+}

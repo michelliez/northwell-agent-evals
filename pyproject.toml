@@ -22,6 +22,9 @@ agent-harness-genq-baseline = "clarity_agent_evals.genq.baseline_faiss:main"
 agent-harness-genq-dense-corpus = "clarity_agent_evals.genq.dense_corpus:main"
 agent-harness-genq-train = "clarity_agent_evals.genq.train_biencoder:main"
 agent-harness-genq-columns = "clarity_agent_evals.genq.column_extractor:main"
+agent-harness-relationship-dataset = "clarity_agent_evals.relationship_dataset:main"
+agent-harness-relationship-genq = "clarity_agent_evals.relationship_query_generation:main"
+clarity-evals-generate = "clarity_agent_evals.generate_eval_set:main"
 
 [build-system]
 requires = ["hatchling"]

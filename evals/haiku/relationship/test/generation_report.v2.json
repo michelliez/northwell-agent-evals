@@ -1,0 +1,28 @@
+{
+  "claude_generated_query_count": 998,
+  "failed_group_count": 2,
+  "failed_relationship_group_ids": [
+    "2e5d4dfaf84eda51627057246d10fffc456a684aac02259a9790361b6be100fa",
+    "cfaeebf49568c2739908fbcdd74fc3a7095e84a3685fb8a2d7be7a65a6f05221"
+  ],
+  "generated_query_count": 1996,
+  "generation_version": "relationship-query-generation-v2",
+  "generator_model": "claude-haiku-4-5-20251001",
+  "identifier_aware_template_version": "relationship-aware-template-v1",
+  "input_group_count": 1000,
+  "input_hash": "bfff107bebede39b6a0966ea8124f589468d3fb7748efe45b57fb7783a58e5a9",
+  "input_path": ".local/relationships/test_relationships.jsonl",
+  "max_input_tokens": 400,
+  "max_query_tokens": 64,
+  "output_hash": "2aa73096a0485a23bda70fa6a915d8c5b0bb7c365c48194afc2b786d888e079d",
+  "output_path": ".local/relationships/queries/test.generated.v2.jsonl",
+  "query_counts_by_type": {
+    "identifier_aware": 1000,
+    "identifier_free": 1000
+  },
+  "relationships_per_request": 10,
+  "seed": 42,
+  "selected_group_count": 1000,
+  "successful_group_count": 998,
+  "top_p": 0.95
+}
